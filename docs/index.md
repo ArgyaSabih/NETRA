@@ -35,6 +35,7 @@ Kebanyakan solusi deteksi dan analisis traffic masih mengandalkan sistem berbasi
 Untuk menghadapi tantangan ini, diperlukan pendekatan yang lebih proaktif dan adaptif dalam analisis traffic. Teknologi seperti machine learning dan analisis big data dapat digunakan untuk mengidentifikasi pola perilaku traffic yang mencurigakan tanpa harus mengandalkan aturan yang ditetapkan secara manual. Teknologi ini di-deploy di cloud network untuk membagi beban analisis dan training traffic. Dengan demikian, organisasi bisa lebih cepat dan efisien dalam mendeteksi dan merespons potensi serangan.
 
 **Analisis Kompetitor:**
+
 ![Analisis Kompetitor 1](images/kompetitor1.png)
 ![Analisis Kompetitor 1](images/kompetitor2.png)
 ![Analisis Kompetitor 1](images/kompetitor3.png)
