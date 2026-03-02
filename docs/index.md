@@ -89,14 +89,23 @@ Entity Relationship Diagram (ERD):
 Low-Fidelity Wireframe:
 
 - Landing Page
+
   ![Low Fidelity Wireframe 1](images/lofi1.png)
+
 - Monitoring Dashboard
+
   ![Low Fidelity Wireframe 2](images/lofi2.png)
+
 - Network Traffic Log Upload Center
+
   ![Low Fidelity Wireframe 3](images/lofi3.png)
+
 - Register
+
   ![Low Fidelity Wireframe 4](images/lofi4.png)
+
 - Login
+
   ![Low Fidelity Wireframe 5](images/lofi5.png)
 
 Gantt-Chart pengerjaan proyek dalam kurun waktu 1 semester:
