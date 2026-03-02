@@ -1,0 +1,25 @@
+# Markdownlint configuration for NETRA documentation
+# Reference: https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md
+
+default: true
+
+# Allow longer lines (useful for tables and long URLs in academic docs)
+MD013:
+  line_length: 200
+  tables: false
+  code_blocks: false
+
+# Allow duplicate headings across different sections/files
+MD024:
+  siblings_only: true
+
+# Allow inline HTML (used for <br> tags in README)
+MD033:
+  allowed_elements:
+    - br
+    - img
+    - details
+    - summary
+
+# Allow first line not to be a top-level heading (for files that start differently)
+MD041: false
