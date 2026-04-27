@@ -19,7 +19,7 @@ export default function Navbar() {
           </div>
 
           {/* Navigation Links */}
-          <div className="items-center hidden gap-8 cursor-pointer font-inter-semibold md:flex">
+          <div className="items-center hidden gap-8 cursor-pointer font-inter-semibold lg:flex">
             <Link href="#about" className="text-sm text-gray-700 transition hover:text-black hover:scale-105">
               About Us
             </Link>
@@ -48,10 +48,10 @@ export default function Navbar() {
 
           {/* Buttons */}
           <div className="flex items-center gap-4">
-            <button className="hidden px-6 py-2 text-sm text-white transition bg-gray-600 rounded cursor-pointer font-inter-medium md:block hover:bg-gray-700">
+            <button className="hidden px-6 py-2 text-sm text-white transition bg-gray-600 rounded cursor-pointer font-inter-medium lg:block hover:bg-gray-700">
               Login
             </button>
-            <button className="hidden px-6 py-2 text-sm text-white transition bg-gray-600 rounded cursor-pointer font-inter-medium md:block hover:bg-gray-700">
+            <button className="hidden px-6 py-2 text-sm text-white transition bg-gray-600 rounded cursor-pointer font-inter-medium lg:block hover:bg-gray-700">
               Sign Up
             </button>
             <HamburgerButton isOpen={isOpen} setIsOpen={setIsOpen} />
@@ -60,7 +60,7 @@ export default function Navbar() {
 
         {/* Mobile Menu */}
         <div
-          className={`bg-white border-t border-gray-200 cursor-pointer md:hidden overflow-hidden transition-all duration-300 ease-in-out ${
+          className={`bg-white border-t border-gray-200 cursor-pointer lg:hidden overflow-hidden transition-all duration-300 ease-in-out ${
             isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
           }`}
         >
