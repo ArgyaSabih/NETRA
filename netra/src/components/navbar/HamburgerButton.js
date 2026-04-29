@@ -6,7 +6,7 @@ export default function HamburgerButton({isOpen, setIsOpen}) {
   return (
     <button
       onClick={() => setIsOpen(!isOpen)}
-      className="relative flex aspect-square w-[1.3rem] cursor-pointer flex-col items-center justify-center gap-1 p-1 sm:h-[4vw] sm:w-[3vw] md:w-6 md:gap-1.5 lg:hidden"
+      className="relative flex aspect-square w-[1.3rem] cursor-pointer flex-col items-center justify-center gap-1 p-1 sm:h-[4vw] sm:w-[3vw] md:w-6 md:gap-1.5 sm:hidden"
       aria-label="Toggle menu"
     >
       <span

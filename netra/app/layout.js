@@ -3,6 +3,7 @@ import {InterBold, InterLight, InterRegular, InterSemiBold, InterMedium} from "@
 import {getMetaData} from "@/src/utils/helper/getMetaData";
 import AnimationProvider from "@/src/components/contexts/AnimationProvider";
 import Navbar from "@/src/components/navbar/Navbar";
+import Footer from "@/src/components/footer/Footer";
 
 export const metadata = getMetaData({
   title: "NETRA",
@@ -17,6 +18,7 @@ export default function RootLayout({children}) {
       >
         <Navbar />
         <AnimationProvider>{children}</AnimationProvider>
+        <Footer />
       </body>
     </html>
   );
