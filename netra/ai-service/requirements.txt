@@ -2,3 +2,5 @@ pandas
 numpy
 scikit-learn
 imbalanced-learn
+uvicorn
+fastapi[standard]

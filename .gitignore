@@ -1,1 +1,4 @@
 AI/data.zip
+__pycache__
+AI/test_data.csv
+.ipynb_checkpoints
