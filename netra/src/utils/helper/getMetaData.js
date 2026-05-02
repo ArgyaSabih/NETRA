@@ -32,8 +32,8 @@ export function getMetaData({title, description}) {
 
     // Robots meta tag
     robots: {
-      index: true, // Allow indexing
-      follow: true, // Allow link-following
+      index: true,
+      follow: true,
       googleBot: {
         index: true,
         follow: true,
@@ -47,40 +47,40 @@ export function getMetaData({title, description}) {
     icons: {
       icon: [
         {
-          url: `assets/favicon/android-chrome-192x192.png`,
+          url: `/assets/favicon/android-chrome-192x192.png`,
           sizes: "192x192",
           type: "image/png"
         },
         {
-          url: `assets/favicon/android-chrome-512x512.png`,
+          url: `/assets/favicon/android-chrome-512x512.png`,
           sizes: "512x512",
           type: "image/png"
         },
-        {url: `assets/favicon/favicon.ico`}
+        {url: `/assets/favicon/favicon.ico`}
       ],
       apple: [
         {
-          url: `assets/favicon/apple-touch-icon.png`,
+          url: `/assets/favicon/apple-touch-icon.png`,
           sizes: "180x180",
           type: "image/png"
         }
       ],
-      shortcut: [{url: `assets/favicon/favicon.ico`}],
+      shortcut: [{url: `/assets/favicon/favicon.ico`}],
       other: [
         {
           rel: "android-chrome-192x192",
-          url: `assets/favicon/android-chrome-192x192.png`,
+          url: `/assets/favicon/android-chrome-192x192.png`,
           sizes: "192x192"
         },
         {
           rel: "android-chrome-512x512",
-          url: `assets/favicon/android-chrome-512x512.png`,
+          url: `/assets/favicon/android-chrome-512x512.png`,
           sizes: "512x512"
         }
       ]
     },
 
-    manifest: `assets/favicon/site.webmanifest`,
+    manifest: `/assets/favicon/site.webmanifest`,
     other: {
       "mobile-web-app-capable": "yes"
     }

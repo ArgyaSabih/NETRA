@@ -1,6 +1,7 @@
 {
   "name": "NETRA",
   "short_name": "NETRA",
+  "mime_type": "application/manifest+json",
   "icons": [
     {
       "src": "/assets/favicon/android-chrome-192x192.png",

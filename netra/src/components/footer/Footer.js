@@ -2,12 +2,23 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import {useRouter} from "next/navigation";
 import DefaultLayout from "../layout/DefaultLayout";
 import {FaPhoneAlt} from "react-icons/fa";
 import {IoMdMail} from "react-icons/io";
 import {FaLocationDot} from "react-icons/fa6";
 
 export default function Footer() {
+  const router = useRouter();
+
+  const goHomeTop = () => {
+    const isAlreadyHome = typeof window !== "undefined" && window.location?.pathname === "/";
+    if (!isAlreadyHome) router.push("/");
+    setTimeout(() => {
+      if (typeof window !== "undefined") window.scrollTo({top: 0, left: 0, behavior: "smooth"});
+    }, 0);
+  };
+
   return (
     <DefaultLayout className="w-full !py-8 bg-gray-100">
       <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
@@ -35,11 +46,14 @@ export default function Footer() {
             <h3 className="text-sm tracking-wide text-black uppercase font-inter-bold">Pages</h3>
             <ul className="space-y-2">
               <li>
-                <Link
-                  href="#"
-                  className="text-sm text-gray-600 transition font-inter-regular hover:text-black"
-                >
-                  About Us
+                <Link href="/">
+                  <button
+                    type="button"
+                    onClick={goHomeTop}
+                    className="text-sm text-gray-600 transition cursor-pointer font-inter-regular hover:text-black"
+                  >
+                    About Us
+                  </button>
                 </Link>
               </li>
               <li>
