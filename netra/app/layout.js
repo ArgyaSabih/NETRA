@@ -1,8 +1,8 @@
 import "@/src/styles/globals.css";
 import {InterBold, InterLight, InterRegular, InterSemiBold, InterMedium} from "@/src/utils/helper/font";
 import {getMetaData} from "@/src/utils/helper/getMetaData";
-import AnimationProvider from "@/src/components/contexts/AnimationProvider";
-import Navbar from "@/src/components/navbar/Navbar";
+import {AuthSessionProvider} from "@/src/components/auth/AuthSessionProvider";
+import AppShell from "@/src/components/layout/AppShell";
 
 export const metadata = getMetaData({
   title: "NETRA",
@@ -15,8 +15,9 @@ export default function RootLayout({children}) {
       <body
         className={`${InterBold.variable} ${InterLight.variable} ${InterRegular.variable} ${InterSemiBold.variable} ${InterMedium.variable} antialiased`}
       >
-        <Navbar />
-        <AnimationProvider>{children}</AnimationProvider>
+        <AuthSessionProvider>
+          <AppShell>{children}</AppShell>
+        </AuthSessionProvider>
       </body>
     </html>
   );

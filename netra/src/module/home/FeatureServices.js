@@ -24,7 +24,7 @@ export default function FeatureServices() {
   ];
 
   return (
-    <DefaultLayout className="bg-white">
+    <DefaultLayout id="feature" className="bg-white">
       <section className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="mb-12 text-center">
