@@ -20,6 +20,7 @@ model User {
   updated_at        DateTime          @updatedAt
   verification_tokens VerificationToken[]
   password_reset_tokens PasswordResetToken[]
+  uploaded_logs     UploadedLog[]
 
   @@map("users")
 }
@@ -45,4 +46,17 @@ model VerificationToken {
   user              User?             @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@map("verification_tokens")
+}
+
+model UploadedLog {
+  id                String    @id @default(cuid())
+  user_id           String
+  user              User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  fileName          String
+  fileSize          Int
+  recordsProcessed  Int
+  threatsDetected   Int
+  uploadedAt        DateTime  @default(now())
+
+  @@map("uploaded_logs")
 }

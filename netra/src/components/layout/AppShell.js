@@ -8,7 +8,8 @@ import AnimationProvider from "@/src/components/contexts/AnimationProvider";
 export default function AppShell({children}) {
   const pathname = usePathname() || "";
 
-  const hideNavFoot = pathname.startsWith("/auth") || pathname.startsWith("/dashboard");
+  const hideNavFoot =
+    pathname.startsWith("/auth") || pathname.startsWith("/dashboard") || pathname.startsWith("/upload-log");
 
   return (
     <>
