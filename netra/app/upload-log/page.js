@@ -1,8 +1,8 @@
 import {redirect} from "next/navigation";
 import {auth} from "@/auth";
-import SOCDashboard from "@/src/components/dashboard/SOCDashboard";
+import UploadLogForm from "@/src/components/upload/UploadLogForm";
 
-export default async function Dashboard() {
+export default async function UploadLogPage() {
   const session = await auth();
 
   if (!session?.user) {
@@ -14,5 +14,5 @@ export default async function Dashboard() {
     redirect(`/auth/verify-pending?email=${email}`);
   }
 
-  return <SOCDashboard />;
+  return <UploadLogForm />;
 }
