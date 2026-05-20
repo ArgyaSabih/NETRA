@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd /d \"D:\\\\Kuliah\\\\Semester 6\\\\Senior Project\\\\NETRA\\\\netra\")",
+      "Bash(Get-ChildItem -Recurse -Depth 3)",
+      "Bash(Select-Object FullName)"
+    ]
+  }
+}

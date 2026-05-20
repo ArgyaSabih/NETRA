@@ -7,14 +7,14 @@ import {sendVerificationEmail} from "@/src/lib/email";
 export async function POST(request) {
   try {
     const body = await request.json();
-    const {name, email, password} = body;
+    const {username, email, password} = body;
 
     // Validate inputs
-    const sanitizedName = sanitizeInput(name);
+    const sanitizedUsername = sanitizeInput(username);
     const sanitizedEmail = sanitizeInput(email?.toLowerCase());
 
-    if (!isValidName(sanitizedName)) {
-      return NextResponse.json({error: "Name must be between 2 and 100 characters"}, {status: 400});
+    if (!isValidName(sanitizedUsername)) {
+      return NextResponse.json({error: "Username must be between 2 and 100 characters"}, {status: 400});
     }
 
     if (!isValidEmail(sanitizedEmail)) {
@@ -53,7 +53,7 @@ export async function POST(request) {
     const newUser = await prisma.user.create({
       data: {
         email: sanitizedEmail,
-        name: sanitizedName,
+        name: sanitizedUsername,
         password_hash: hashedPassword,
         email_verified: false
       }

@@ -3,8 +3,117 @@ import {auth} from "@/auth";
 import {prisma} from "@/src/lib/prisma";
 
 /**
+ * Parse file text into row objects.
+ * - .csv  : comma-separated, first line is header
+ * - .log / .test : skip '#' comment lines, auto-detect delimiter (tab → comma → whitespace),
+ *                  support Zeek "#fields" header line
+ */
+function parseTextToRows(text, fileExtension) {
+  const rawLines = text.trim().split("\n");
+
+  if (fileExtension === ".log" || fileExtension === ".test") {
+    // Check for Zeek-style "#fields" header
+    const fieldsLine = rawLines.find((l) => l.startsWith("#fields"));
+    let headers;
+    let dataLines;
+    let isZeek = false;
+
+    if (fieldsLine) {
+      isZeek = true;
+      // Zeek logs mix tabs and 2+ spaces as separators (e.g. tunnel_parents   label   detailed-label)
+      // Split by tab OR 2+ consecutive spaces to handle both
+      headers = fieldsLine
+        .replace(/^#fields[\t ]+/, "")
+        .split(/\t| {2,}/)
+        .map((h) => h.trim())
+        .filter((h) => h !== "");
+      dataLines = rawLines.filter((l) => !l.startsWith("#") && l.trim() !== "");
+    } else {
+      // Generic log: drop comment/blank lines, use first non-comment line as header
+      const nonComment = rawLines.filter((l) => !l.startsWith("#") && l.trim() !== "");
+      if (nonComment.length < 2) {
+        throw new Error("File must have a header line and at least one data row");
+      }
+      const headerLine = nonComment[0];
+      const delim = detectDelimiter(headerLine);
+      headers = splitLine(headerLine, delim).map((h) => h.trim());
+      dataLines = nonComment.slice(1);
+    }
+
+    if (dataLines.length === 0) {
+      throw new Error("File contains no data rows after the header");
+    }
+
+    const rows = [];
+    for (const line of dataLines) {
+      if (!line.trim()) continue;
+      // Use the same splitting strategy as the header
+      const values = isZeek
+        ? line.split(/\t| {2,}/).map((v) => v.trim())
+        : splitLine(line, detectDelimiter(line)).map((v) => v.trim());
+      if (values.length !== headers.length) continue;
+      const row = {};
+      headers.forEach((h, i) => {
+        const v = values[i];
+        row[h] = v !== "" && !isNaN(v) ? parseFloat(v) : v;
+      });
+      rows.push(row);
+    }
+    return {rows, headers};
+  }
+
+  // --- CSV ---
+  const lines = rawLines;
+  if (lines.length < 2) {
+    throw new Error(`CSV file must have headers and at least one data row (found ${lines.length} line(s))`);
+  }
+  const headers = lines[0].split(",").map((h) => h.trim());
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+    const values = line.split(",").map((v) => v.trim());
+    if (values.length !== headers.length) continue;
+    const row = {};
+    headers.forEach((h, idx) => {
+      const v = values[idx];
+      row[h] = v !== "" && !isNaN(v) ? parseFloat(v) : v;
+    });
+    rows.push(row);
+  }
+  return {rows, headers};
+}
+
+/**
+ * Count malicious rows using the label column.
+ * Handles both numeric (1 / "1") and string ("Malicious") label formats.
+ */
+function countThreatsFromLabel(rows) {
+  return rows.filter((r) => {
+    const lbl = r.label;
+    if (lbl === 1 || lbl === "1") return true;
+    if (typeof lbl === "string" && lbl.toLowerCase() === "malicious") return true;
+    return false;
+  }).length;
+}
+
+function detectDelimiter(line) {
+  const tabCount = (line.match(/\t/g) || []).length;
+  const commaCount = (line.match(/,/g) || []).length;
+  if (tabCount >= commaCount && tabCount > 0) return "\t";
+  if (commaCount > 0) return ",";
+  return " ";
+}
+
+function splitLine(line, delimiter) {
+  if (delimiter === " ") return line.trim().split(/\s+/);
+  return line.split(delimiter);
+}
+
+/**
  * POST /api/upload-log
- * Handle CSV/log file upload and send to AI Service for analysis
+ * Handle file upload (CSV / LOG / TEST) and send to AI Service for analysis.
+ * Overwrites any previous upload record for this user.
  */
 export async function POST(req) {
   try {
@@ -14,12 +123,10 @@ export async function POST(req) {
       return NextResponse.json({error: "Unauthorized"}, {status: 401});
     }
 
-    // Get file from FormData
     const formData = await req.formData();
     const file = formData.get("file");
 
     if (!file) {
-      console.error("[Upload] No file provided");
       return NextResponse.json(
         {error: "No file provided", message: "Please select a file to upload"},
         {status: 400}
@@ -27,146 +134,86 @@ export async function POST(req) {
     }
 
     // Validate file size (max 50MB)
-    const maxFileSize = 50 * 1024 * 1024; // 50MB
+    const maxFileSize = 50 * 1024 * 1024;
     if (file.size > maxFileSize) {
-      const maxMB = Math.floor(maxFileSize / (1024 * 1024));
       const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
-      const msg = `File size (${sizeMB}MB) exceeds ${maxMB}MB limit`;
-      console.error("[Upload]", msg);
+      const msg = `File size (${sizeMB}MB) exceeds 50MB limit`;
       return NextResponse.json({error: msg, message: msg}, {status: 400});
     }
 
-    // Read file content with chunked decoding to avoid ERR_STRING_TOO_LONG
+    // Validate file type
+    const fileExtension = file.name.substring(file.name.lastIndexOf(".")).toLowerCase();
+    const validExtensions = [".csv", ".log", ".test"];
+    if (!validExtensions.includes(fileExtension)) {
+      const msg = `File type ${fileExtension} is not supported. Only .csv, .log, and .test files are allowed.`;
+      return NextResponse.json({error: msg, message: msg}, {status: 400});
+    }
+
+    // Read file content in 1MB chunks to avoid ERR_STRING_TOO_LONG
     const buffer = await file.arrayBuffer();
     const uint8Array = new Uint8Array(buffer);
     const decoder = new TextDecoder();
     let text = "";
-
-    // Process in 1MB chunks
     const chunkSize = 1024 * 1024;
     for (let i = 0; i < buffer.byteLength; i += chunkSize) {
       const chunk = uint8Array.slice(i, Math.min(i + chunkSize, buffer.byteLength));
-      // stream: true except on last chunk to handle multi-byte sequences
       const isLastChunk = i + chunkSize >= buffer.byteLength;
       text += decoder.decode(chunk, {stream: !isLastChunk});
     }
 
-    // Parse CSV
-    const lines = text.trim().split("\n");
-
-    if (lines.length < 2) {
-      const msg = `CSV file must have headers and at least one data row (found ${lines.length} line(s))`;
-      console.error("[Upload]", msg);
+    // Parse file into rows (handles CSV, LOG, TEST formats)
+    let rows, headers;
+    try {
+      ({rows, headers} = parseTextToRows(text, fileExtension));
+    } catch (parseError) {
+      const msg = parseError.message;
+      console.error("[Upload] Parse error:", msg);
       return NextResponse.json({error: msg, message: msg}, {status: 400});
     }
 
-    const headers = lines[0].split(",").map((h) => h.trim());
-    console.log("[Upload] CSV headers:", headers);
-
-    const rows = [];
-
-    for (let i = 1; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (line === "") continue;
-
-      const values = line.split(",").map((v) => v.trim());
-
-      // Skip lines with mismatched column count
-      if (values.length !== headers.length) {
-        console.warn(
-          `[Upload] Skipping line ${i} - column count mismatch (${values.length} vs ${headers.length})`
-        );
-        continue;
-      }
-
-      const row = {};
-      headers.forEach((header, index) => {
-        const value = values[index];
-        // Convert to number if possible
-        row[header] = isNaN(value) ? value : parseFloat(value);
-      });
-
-      rows.push(row);
-    }
-
-    console.log(`[Upload] Parsed ${rows.length} data rows from CSV`);
+    console.log(`[Upload] Parsed ${rows.length} rows from ${fileExtension} file`);
 
     if (rows.length === 0) {
-      const msg = `CSV file contains no valid data rows (check column count matches headers)`;
-      console.error("[Upload]", msg);
+      const msg = "File contains no valid data rows (check that column count matches headers)";
       return NextResponse.json({error: msg, message: msg}, {status: 400});
     }
 
     // Send to AI Service for prediction
     const AI_SERVICE_URL = process.env.AI_SERVICE_URL || "http://localhost:8000";
-
     let predictions = [];
     let threatsDetected = 0;
-    let aiResponseData = null;
 
     try {
-      // Prepare data: remove label from features but keep it for comparison
+      // Strip label columns before sending to AI
       const dataForAI = rows.map((row) => {
-        const {label, ...features} = row;
+        const {label, "detailed-label": _dl, ...features} = row;
         return features;
       });
 
-      // Send to AI Service using /predict-json endpoint
       console.log(`[Upload] Sending ${dataForAI.length} records to AI Service...`);
       const aiResponse = await fetch(`${AI_SERVICE_URL}/predict-json`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          data: dataForAI
-        })
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({data: dataForAI})
       });
 
       if (aiResponse.ok) {
-        aiResponseData = await aiResponse.json();
-        console.log(`[Upload] AI Service response:`, aiResponseData);
-
-        if (aiResponseData.success) {
-          predictions = aiResponseData.predictions || [];
-          threatsDetected = aiResponseData.malicious_count || predictions.filter((p) => p === 1).length;
+        const aiData = await aiResponse.json();
+        if (aiData.success) {
+          predictions = aiData.predictions || [];
+          threatsDetected = aiData.malicious_count || predictions.filter((p) => p === 1).length;
         }
       } else {
-        const errorText = await aiResponse.text();
-        console.error("AI Service error:", aiResponse.status, errorText);
-        // Continue with fallback predictions if AI fails
-        console.log("[Upload] Using fallback threat detection (label column)");
-        threatsDetected = rows.filter((r) => r.label === 1 || r.label === "1").length;
+        console.error("[Upload] AI Service error:", aiResponse.status);
+        threatsDetected = countThreatsFromLabel(rows);
       }
     } catch (aiError) {
-      console.error("AI Service connection error:", aiError.message);
-      // Continue with fallback predictions if AI fails
-      console.log("[Upload] Using fallback threat detection (label column)");
-      threatsDetected = rows.filter((r) => r.label === 1 || r.label === "1").length;
+      console.error("[Upload] AI Service connection error:", aiError.message);
+      threatsDetected = countThreatsFromLabel(rows);
     }
 
-    // Create log entries from predictions
-    const logs = rows.map((row, index) => {
-      const isPredicted = predictions[index] || row.label;
-      const isMalicious = isPredicted === 1;
+    console.log(`[Upload] ${rows.length} records processed, ${threatsDetected} threats detected`);
 
-      return {
-        timestamp: new Date().toISOString(),
-        severity: isMalicious ? "CRITICAL" : "INFO",
-        sourceIp: `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
-        eventType: isMalicious ? "Malicious Traffic" : "Benign Traffic",
-        message: `Network traffic prediction: ${isMalicious ? "MALICIOUS" : "BENIGN"} (Confidence: ${(Math.random() * 0.5 + 0.5) * 100}.toFixed(2))%`,
-        prediction: isMalicious ? 1 : 0,
-        confidence: Math.random() * 0.5 + 0.5,
-        rawData: row
-      };
-    });
-
-    // Save logs to database (mock implementation)
-    // In production, use: await db.logs.createMany(logs)
-    console.log(`[Upload] Processed ${logs.length} log entries, ${threatsDetected} threats detected`);
-
-    // Generate threat statistics
     const threatStats = {
       totalRecords: rows.length,
       maliciousRecords: threatsDetected,
@@ -174,7 +221,6 @@ export async function POST(req) {
       threatPercentage: ((threatsDetected / rows.length) * 100).toFixed(2)
     };
 
-    // Also update dashboard threat categories
     const threatCounts = {
       "DDoS Attacks": Math.floor(threatsDetected * 0.45),
       Bruteforce: Math.floor(threatsDetected * 0.28),
@@ -182,21 +228,21 @@ export async function POST(req) {
       Phishing: Math.floor(threatsDetected * 0.12)
     };
 
-    // Save uploaded log to database
+    // Overwrite previous record for this user (upsert by user_id)
     try {
+      await prisma.uploadedLog.deleteMany({where: {user_id: session.user.id}});
       await prisma.uploadedLog.create({
         data: {
           user_id: session.user.id,
           fileName: file.name,
           fileSize: file.size,
           recordsProcessed: rows.length,
-          threatsDetected: threatsDetected
+          threatsDetected
         }
       });
-      console.log(`[Upload] Saved log entry to database for user ${session.user.email}`);
+      console.log(`[Upload] Saved (overwrite) log entry for user ${session.user.email}`);
     } catch (dbError) {
-      console.error("Failed to save log to database:", dbError);
-      // Continue anyway - log the error but don't fail the upload
+      console.error("[Upload] Failed to save log to database:", dbError);
     }
 
     return NextResponse.json(
@@ -233,7 +279,7 @@ export async function POST(req) {
 
 /**
  * GET /api/upload-log
- * Get upload history
+ * Get upload history for the authenticated user
  */
 export async function GET(req) {
   try {
@@ -243,44 +289,10 @@ export async function GET(req) {
       return NextResponse.json({error: "Unauthorized"}, {status: 401});
     }
 
-    // Mock upload history
-    const uploads = [
-      {
-        id: 1,
-        fileName: "auth_server_01.log",
-        status: "completed",
-        recordsProcessed: 5000,
-        threatsDetected: 45,
-        uploadedAt: new Date(Date.now() - 5 * 60000).toISOString(),
-        fileSize: 2400000
-      },
-      {
-        id: 2,
-        fileName: "syslog_udp.csv",
-        status: "completed",
-        recordsProcessed: 3200,
-        threatsDetected: 32,
-        uploadedAt: new Date(Date.now() - 2 * 3600000).toISOString(),
-        fileSize: 1200000
-      },
-      {
-        id: 3,
-        fileName: "router_dump_final.json",
-        status: "error",
-        errorMessage: "Parsing error",
-        uploadedAt: new Date(Date.now() - 5 * 3600000).toISOString(),
-        fileSize: 856000
-      },
-      {
-        id: 4,
-        fileName: "web_access_logs.txt",
-        status: "completed",
-        recordsProcessed: 8500,
-        threatsDetected: 0,
-        uploadedAt: new Date(Date.now() - 24 * 3600000).toISOString(),
-        fileSize: 542000
-      }
-    ];
+    const uploads = await prisma.uploadedLog.findMany({
+      where: {user_id: session.user.id},
+      orderBy: {uploadedAt: "desc"}
+    });
 
     return NextResponse.json({uploads});
   } catch (error) {

@@ -22,10 +22,13 @@ export const authOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) throw new InvalidCredentialsError();
 
-        // Find user by email
-        const user = await prisma.user.findUnique({
-          where: {email: credentials.email}
-        });
+        const identifier = credentials.email.trim();
+
+        // Find user by email or username (name field)
+        const isEmail = identifier.includes("@");
+        const user = isEmail
+          ? await prisma.user.findUnique({where: {email: identifier.toLowerCase()}})
+          : await prisma.user.findFirst({where: {name: identifier}});
 
         if (!user) throw new InvalidCredentialsError();
 
@@ -59,6 +62,7 @@ export const authOptions = {
 
     async session({session, token}) {
       session.user.id = token.id;
+      session.user.name = token.name;
       session.user.email_verified = token.email_verified;
       return session;
     }
