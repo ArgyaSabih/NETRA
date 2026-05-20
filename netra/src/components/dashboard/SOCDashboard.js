@@ -6,6 +6,7 @@ import StatCard from "./StatCard";
 import NetworkTrafficChart from "./NetworkTrafficChart";
 import ThreatCategories from "./ThreatCategories";
 import LiveLogStream from "./LiveLogStream";
+import Sidebar from "@/src/components/shared/Sidebar";
 import {FiAlertTriangle, FiZap, FiActivity, FiShield, FiMenu, FiX, FiUpload} from "react-icons/fi";
 import {useDashboardData, useThreatData} from "@/src/hooks/useDashboard";
 
@@ -16,80 +17,7 @@ export default function SOCDashboard() {
 
   return (
     <div className="flex h-screen overflow-hidden text-white bg-slate-950">
-      {/* Sidebar */}
-      <aside
-        className={`
-          fixed md:static inset-y-0 left-0 z-40
-          w-64 bg-slate-900 border-r border-slate-800
-          transform transition-transform duration-300 ease-in-out
-          ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
-        `}
-      >
-        <div className="p-6">
-          <div className="flex items-center gap-2 mb-8">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600"></div>
-            <span className="text-lg font-bold">NETRA</span>
-          </div>
-
-          <nav className="space-y-2">
-            {[
-              {icon: FiActivity, label: "Dashboard", href: "/dashboard", active: true},
-              {icon: FiUpload, label: "Upload Log", href: "/upload-log", active: false}
-            ].map((item, i) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={i}
-                  href={item.href}
-                  className={`
-                    w-full flex items-center gap-3 px-4 py-2 rounded-lg
-                    transition-all text-left
-                    ${
-                      item.active
-                        ? "bg-blue-500/20 text-blue-400 border border-blue-500/50"
-                        : "text-slate-400 hover:bg-slate-800"
-                    }
-                  `}
-                >
-                  <Icon size={20} />
-                  <span className="text-sm font-medium">{item.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
-
-          <div className="pt-8 mt-8 border-t border-slate-800">
-            <p className="mb-3 text-xs font-medium text-slate-500">CONFIGURATION</p>
-            <nav className="space-y-2">
-              {[
-                {icon: FiShield, label: "Settings"},
-                {icon: FiActivity, label: "Users"}
-              ].map((item, i) => {
-                const Icon = item.icon;
-                return (
-                  <button
-                    key={i}
-                    className="flex items-center w-full gap-3 px-4 py-2 text-left transition-all rounded-lg text-slate-400 hover:bg-slate-800"
-                  >
-                    <Icon size={20} />
-                    <span className="text-sm font-medium">{item.label}</span>
-                  </button>
-                );
-              })}
-            </nav>
-          </div>
-        </div>
-
-        <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-slate-800">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600"></div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">Username</p>
-              <p className="text-xs truncate text-slate-400">Admin Role</p>
-            </div>
-          </div>
-        </div>
-      </aside>
+      <Sidebar activePage="dashboard" sidebarOpen={sidebarOpen} />
 
       {/* Main Content */}
       <div className="flex flex-col flex-1 overflow-hidden">

@@ -99,19 +99,19 @@ export default function LoginForm() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Email Field */}
+        {/* Email or Username Field */}
         <div>
           <label htmlFor="email" className="block mb-2 text-sm text-black font-inter-semibold">
-            Email
+            Email or Username
           </label>
           <input
-            type="email"
+            type="text"
             id="email"
             name="email"
-            autoComplete="email"
+            autoComplete="username"
             value={formData.email}
             onChange={handleChange}
-            placeholder="Enter your email"
+            placeholder="Enter your email or username"
             className={`w-full px-4 py-2 border rounded-lg text-black font-inter-regular placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-600 transition ${
               errors.email ? "border-red-500" : "border-gray-300"
             }`}

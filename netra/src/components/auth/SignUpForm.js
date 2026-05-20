@@ -8,7 +8,7 @@ import {IoMdEye, IoMdEyeOff} from "react-icons/io";
 export default function SignUpForm() {
   const router = useRouter();
   const [formData, setFormData] = useState({
-    name: "",
+    username: "",
     email: "",
     password: ""
   });
@@ -96,24 +96,24 @@ export default function SignUpForm() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Name Field */}
+        {/* Username Field */}
         <div>
-          <label htmlFor="name" className="block mb-2 text-sm text-black font-inter-semibold">
-            Name
+          <label htmlFor="username" className="block mb-2 text-sm text-black font-inter-semibold">
+            Username
           </label>
           <input
             type="text"
-            id="name"
-            name="name"
-            value={formData.name}
+            id="username"
+            name="username"
+            value={formData.username}
             onChange={handleChange}
-            placeholder="Enter your name"
+            placeholder="Enter your username"
             className={`w-full px-4 py-2 border text-black rounded-lg font-inter-regular placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-600 transition ${
-              errors.name ? "border-red-500" : "border-gray-300"
+              errors.username ? "border-red-500" : "border-gray-300"
             }`}
             disabled={loading}
           />
-          {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name}</p>}
+          {errors.username && <p className="mt-1 text-xs text-red-500">{errors.username}</p>}
         </div>
 
         {/* Email Field */}
