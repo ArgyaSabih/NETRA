@@ -1,11 +1,13 @@
 "use client";
 
 import {useState, useRef} from "react";
+import {useSession} from "next-auth/react";
 import {FiUploadCloud, FiCheckCircle, FiAlertCircle, FiX, FiDownload, FiMenu} from "react-icons/fi";
 import {useRouter} from "next/navigation";
 import Sidebar from "@/src/components/shared/Sidebar";
 
 export default function UploadLogForm() {
+  const { data: session } = useSession();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -66,85 +68,96 @@ export default function UploadLogForm() {
     e.stopPropagation();
   };
 
-  const processFile = async (file) => {
-    const maxSize = 1024 * 1024 * 1024;
-    if (file.size > maxSize) {
-      setUploadStatus("error");
-      setStatusMessage("File size exceeds 1GB limit");
-      return;
-    }
+const processFile = async (file) => {
+  if (!session?.user?.id) {
+    setUploadStatus("error");
+    setStatusMessage("Please log in to upload files");
+    return;
+  }
 
-    const validExtensions = [".log", ".csv", ".test"];
-    const fileExtension = file.name.substring(file.name.lastIndexOf(".")).toLowerCase();
-    if (!validExtensions.includes(fileExtension)) {
-      setUploadStatus("error");
-      setStatusMessage(`File type ${fileExtension} is not supported. Only .log, .csv, and .test files are allowed.`);
-      return;
-    }
+  const maxSize = 1024 * 1024 * 1024;
+  if (file.size > maxSize) {
+    setUploadStatus("error");
+    setStatusMessage("File size exceeds 1GB limit");
+    return;
+  }
 
-    setIsUploading(true);
-    setUploadProgress(0);
-    setUploadStatus(null);
+  const validExtensions = [".log", ".csv", ".test"];
+  const fileExtension = file.name.substring(file.name.lastIndexOf(".")).toLowerCase();
+  if (!validExtensions.includes(fileExtension)) {
+    setUploadStatus("error");
+    setStatusMessage(`File type ${fileExtension} is not supported. Only .log, .csv, and .test files are allowed.`);
+    return;
+  }
 
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
+  setIsUploading(true);
+  setUploadProgress(0);
+  setUploadStatus(null);
 
-      const progressInterval = setInterval(() => {
-        setUploadProgress((prev) => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return prev;
-          }
-          return prev + Math.random() * 30;
-        });
-      }, 300);
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
 
-      const response = await fetch("/api/upload-log", {
-        method: "POST",
-        body: formData
+    const progressInterval = setInterval(() => {
+      setUploadProgress((prev) => {
+        if (prev >= 90) {
+          clearInterval(progressInterval);
+          return prev;
+        }
+        return prev + Math.random() * 30;
       });
+    }, 300);
 
-      clearInterval(progressInterval);
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+    const response = await fetch(`${backendUrl}/api/upload-log`, {
+      method: "POST",
+      headers: {
+        // No Content-Type — browser sets it with multipart boundary automatically
+        "x-user-id": session?.user?.id,
+      },
+      body: formData,
+    });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        const errorMessage = errorData.message || errorData.error || "Upload failed";
-        console.error("[UploadForm] Upload error response:", errorData);
-        throw new Error(errorMessage);
-      }
+    clearInterval(progressInterval);
 
-      const data = await response.json();
-      setUploadProgress(100);
-      setUploadStatus("success");
-      setStatusMessage(`File uploaded successfully! ${data.recordsProcessed} records analyzed.`);
+    if (!response.ok) {
+      const errorData = await response.json();
+      const errorMessage = errorData.message || errorData.error || "Upload failed";
+      console.error("[UploadForm] Upload error response:", errorData);
+      throw new Error(errorMessage);
+    }
 
-      const newUpload = {
-        id: recentUploads.length + 1,
-        name: file.name,
-        status: "Completed",
-        timestamp: "Just now",
-        size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
-        threatsFound: `${data.threatsDetected} Threats Found`
-      };
+    const data = await response.json();
+    setUploadProgress(100);
+    setUploadStatus("success");
+    setStatusMessage(`File uploaded successfully! ${data.recordsProcessed} records analyzed.`);
 
-      setRecentUploads([newUpload, ...recentUploads.slice(0, 3)]);
+    const newUpload = {
+      id: recentUploads.length + 1,
+      name: file.name,
+      status: "Completed",
+      timestamp: "Just now",
+      size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
+      threatsFound: `${data.threatsDetected} Threats Found`,
+    };
+    setRecentUploads([newUpload, ...recentUploads.slice(0, 3)]);
 
-      setTimeout(() => {
-        fileInputRef.current.value = "";
-        setUploadProgress(0);
-        setIsUploading(false);
-        router.push("/dashboard");
-      }, 1500);
-    } catch (error) {
+    setTimeout(() => {
+      fileInputRef.current.value = "";
       setUploadProgress(0);
       setIsUploading(false);
-      setUploadStatus("error");
-      const errorMsg = error.message || "An error occurred during upload";
-      setStatusMessage(errorMsg);
-      console.error("[UploadForm] Upload failed:", errorMsg, error);
-    }
-  };
+      router.push("/dashboard");
+    }, 1500);
+
+  } catch (error) {
+    setUploadProgress(0);
+    setIsUploading(false);
+    setUploadStatus("error");
+    const errorMsg = error.message || "An error occurred during upload";
+    setStatusMessage(errorMsg);
+    console.error("[UploadForm] Upload failed:", errorMsg, error);
+  }
+};
 
   const handleDrop = (e) => {
     e.preventDefault();

@@ -1,23 +1,42 @@
 services:
+  frontend:
+    build: .
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      - NEXT_PUBLIC_BACKEND_URL=http://backend:5000
+      - NEXTAUTH_URL=http://localhost:3000
+    depends_on:
+      - backend
+      - ai-service
+    networks:
+      - netra-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "127.0.0.1:5000:5000"
+    environment:
+      - NODE_ENV=production
+      - AI_SERVICE_URL=http://ai-service:8000
+    depends_on:
+      - ai-service
+    networks:
+      - netra-network
+
   ai-service:
     build: ./ai-service
     ports:
-      - "127.0.0.1:8001:8000"
+      - "127.0.0.1:8000:8000"
     volumes:
       - ./ai-service:/app 
     environment:
       - ENV=development
+    networks:
+      - netra-network
 
-#  backend:
-#    build: ./backend
-#    ports:
-#      - "8000:8000"
-#    depends_on:
-#      - ai-service
-
-#  frontend:
-#    build: ./frontend
-#    ports:
-#      - "3000:3000"
-#    depends_on:
-#      - backend
+networks:
+  netra-network:
+    driver: bridge

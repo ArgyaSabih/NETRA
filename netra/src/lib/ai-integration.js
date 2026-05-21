@@ -10,7 +10,7 @@
  */
 export async function analyzeTrafficWithAI(trafficData) {
   try {
-    const response = await fetch("http://localhost:8000/predict", {
+    const response = await fetch("http://localhost:8000/predict-new", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -160,7 +160,7 @@ export function calculateThreatStats(predictions) {
   };
 
   predictions.forEach((pred) => {
-    if (pred.label === 1) {
+    if (pred.label === -1) {
       stats.malicious++;
     } else {
       stats.benign++;

@@ -1,55 +1,71 @@
-import {NextResponse} from "next/server";
-import {prisma} from "@/src/lib/prisma";
+import { prisma } from "@/src/lib/prisma";
+import { redirect } from "next/navigation";
 
 export async function GET(request) {
   try {
-    const token = request.nextUrl.searchParams.get("token");
-    const origin = request.nextUrl.origin;
-
-    const redirectToLogin = (params) => NextResponse.redirect(`${origin}/auth/login${params}`);
+    const { searchParams } = new URL(request.url);
+    const token = searchParams.get("token");
 
     if (!token) {
-      return redirectToLogin(`?error=${encodeURIComponent("Invalid verification link")}`);
+      return Response.json(
+        { error: "Verification token is missing" },
+        { status: 400 }
+      );
     }
 
     // Find verification token
     const verificationToken = await prisma.verificationToken.findUnique({
-      where: {token}
+      where: { token }
     });
 
     if (!verificationToken) {
-      return redirectToLogin(`?error=${encodeURIComponent("Invalid or expired verification link")}`);
+      return Response.json(
+        { error: "Invalid or expired verification token" },
+        { status: 400 }
+      );
     }
 
-    // Check if token is expired
+    // Check if token has expired
     if (new Date() > verificationToken.expires_at) {
-      // Delete expired token
-      await prisma.verificationToken.delete({
-        where: {token}
-      });
-      return redirectToLogin(`?error=${encodeURIComponent("Verification link has expired")}`);
+      return Response.json(
+        { error: "Verification token has expired" },
+        { status: 400 }
+      );
     }
 
-    const email = verificationToken.email;
+    // Check if email is already verified
+    const user = await prisma.user.findUnique({
+      where: { id: verificationToken.user_id }
+    });
 
-    // Mark user email as verified
+    if (user?.email_verified) {
+      return Response.json(
+        { message: "Email is already verified" },
+        { status: 200 }
+      );
+    }
+
+    // Update user - mark email as verified
     await prisma.user.update({
-      where: {email},
-      data: {email_verified: true}
+      where: { id: verificationToken.user_id },
+      data: { email_verified: true }
     });
 
-    // Delete verification token
+    // Delete used verification token
     await prisma.verificationToken.delete({
-      where: {token}
+      where: { id: verificationToken.id }
     });
 
-    // Redirect to login page with success message
-    return redirectToLogin("?verified=true");
+    // Redirect to login with verified flag
+    return Response.redirect(
+      `${process.env.NEXTAUTH_URL}/auth/login?verified=true`,
+      302
+    );
   } catch (error) {
     console.error("Email verification error:", error);
-    const origin = request.nextUrl.origin;
-    return NextResponse.redirect(
-      `${origin}/auth/login?error=${encodeURIComponent("An error occurred during verification")}`
+    return Response.json(
+      { error: "An error occurred during email verification" },
+      { status: 500 }
     );
   }
 }

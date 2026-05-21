@@ -11,11 +11,15 @@ export async function GET(req) {
     }
 
     // Check if user has uploaded any logs
-    const uploadedLog = await prisma.uploadedLog.findFirst({
-      where: {
-        user_id: session.user.id
-      }
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+    const response = await fetch(`${backendUrl}/api/threats`, {
+      headers: {
+        "Content-Type": "application/json",
+        "x-user-id": session?.user?.id,
+      },
     });
+    
+    const uploadedLog = await response.json();
 
     // If no logs, return empty threats
     if (!uploadedLog) {
@@ -28,7 +32,7 @@ export async function GET(req) {
     }
 
     // Calculate threat distribution based on uploaded logs
-    const totalThreats = uploadedLog.threatsDetected;
+    const totalThreats = uploadedLog[0].threatsDetected;
     const threats = [
       {
         name: "DDoS Attacks",
@@ -59,7 +63,7 @@ export async function GET(req) {
     return NextResponse.json({
       threats,
       totalThreatsDetected: totalThreats,
-      lastUpdated: uploadedLog.uploadedAt,
+      lastUpdated: uploadedLog[0].uploadedAt,
       hasData: true
     });
   } catch (error) {
