@@ -1,41 +1,52 @@
-// "use client";
+"use client";
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { useContext } from "react";
+import { LogChartContext } from "@/src/components/contexts/ChartDataProvider";
 
-// export default function ThreatCategories({threats = []}) {
-//   const defaultThreats = [
-//     {name: "DDoS Attacks", percentage: 45, color: "bg-red-500"},
-//     {name: "Bruteforce", percentage: 28, color: "bg-orange-500"},
-//     {name: "Malware", percentage: 15, color: "bg-purple-500"},
-//     {name: "Phishing", percentage: 12, color: "bg-blue-500"}
-//   ];
+const COLORS = {
+  "potentially malicious": "#ef4444",
+  "benign-like": "#22c55e",
+};
 
-//   const threatData = threats.length > 0 ? threats : defaultThreats;
+const FALLBACK_COLOR = "#94a3b8";
 
-//   return (
-//     <div className="p-6 rounded-lg border border-slate-700/50 bg-slate-800/50">
-//       <h2 className="text-lg font-semibold text-white mb-6">Threat Categories</h2>
+export default function TrafficPieChart() {
+  const { logTableData = [] } = useContext(LogChartContext);
 
-//       <div className="space-y-4">
-//         {threatData.map((threat, index) => (
-//           <div key={index}>
-//             <div className="flex items-center justify-between mb-2">
-//               <span className="text-sm text-slate-300">{threat.name}</span>
-//               <span className="text-sm font-medium text-white">{threat.percentage}%</span>
-//             </div>
-//             <div className="h-2 bg-slate-700/50 rounded-full overflow-hidden">
-//               <div
-//                 className={`h-full ${threat.color} transition-all`}
-//                 style={{width: `${threat.percentage}%`}}
-//               ></div>
-//             </div>
-//           </div>
-//         ))}
-//       </div>
+  const chartData = Object.entries(
+    logTableData.reduce((acc, log) => {
+      const type = log.eventType ?? "Unknown";
+      acc[type] = (acc[type] || 0) + 1;
+      return acc;
+    }, {})
+  ).map(([name, value]) => ({ name, value }));
 
-//       <div className="mt-6 pt-6 border-t border-slate-700/50">
-//         <p className="text-xs text-slate-500 text-center">
-//           Data updated in real-time from AI threat analysis
-//         </p>
-//       </div>
-//     </div>
-//   );
-// }
+  return (
+    <ResponsiveContainer width="100%" height={300}>
+      <PieChart>
+        <Pie
+          data={chartData}
+          cx="50%"
+          cy="50%"
+          innerRadius={60}
+          outerRadius={100}
+          paddingAngle={3}
+          dataKey="value"
+        >
+          {chartData.map((entry, index) => (
+            <Cell
+              key={`cell-${index}`}
+              fill={COLORS[entry.name] ?? FALLBACK_COLOR}
+            />
+          ))}
+        </Pie>
+        <Tooltip
+          contentStyle={{ backgroundColor: "#1e293b", border: "1px solid #334155", borderRadius: "8px" }}
+          labelStyle={{ color: "#e2e8f0" }}
+          formatter={(value, name) => [`${value} logs`, name]}
+        />
+        <Legend />
+      </PieChart>
+    </ResponsiveContainer>
+  );
+}

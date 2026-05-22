@@ -43,7 +43,7 @@ router.get("/", requireAuth, async (req, res) => {
         90,
         100 - Math.floor((uploadedLog.threatsDetected / uploadedLog.recordsProcessed) * 100)
       ),
-      aiRiskScore: uploadedLog.threatsDetected > 0 ? "High" : "Low",
+      aiRiskScore: uploadedLog.threatsDetected > 50 ? "High" : "Low",
       lastUpdated: uploadedLog.uploadedAt,
       uptime: "99.8%",
       hasData: true
