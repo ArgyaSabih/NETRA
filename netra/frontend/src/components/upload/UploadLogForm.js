@@ -6,10 +6,12 @@ import {FiUploadCloud, FiCheckCircle, FiAlertCircle, FiX, FiDownload, FiMenu} fr
 import {useRouter} from "next/navigation";
 import Sidebar from "@/src/components/shared/Sidebar";
 import {LogDataContext} from "@/src/components/contexts/LogDataProvider";
+import { LogChartContext } from "../contexts/ChartDataProvider";
 
 export default function UploadLogForm() {
   const { data: session } = useSession();
   const { setLogsFromUpload } = useContext(LogDataContext);
+  const { setChartfromUpload } = useContext(LogChartContext);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -135,8 +137,9 @@ const processFile = async (file) => {
     setStatusMessage(`File uploaded successfully! ${data.recordsProcessed} records analyzed.`);
 
     // Pass table data to context for LiveLogStream
-    if (data.tableData) {
+    if (data.tableData && data.fullTable) {
       setLogsFromUpload(data.tableData);
+      setChartfromUpload(data.fullTable);
     } else {
       console.warn("[UploadForm] No table data found in response");
     }

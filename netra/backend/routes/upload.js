@@ -64,6 +64,7 @@ router.post("/", requireAuth, upload.single("file"), async (req, res) => {
       message: "File uploaded and analyzed successfully",
       data: uploadedLog,
       tableData: aiResponse.data.table,  // Store the actual table data
+      fullTable: aiResponse.data.full_table
     });
     } catch (uploadError) {
       console.error("Failed to upload to Database:", uploadError.message);

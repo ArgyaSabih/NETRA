@@ -2,7 +2,7 @@
 
 import { createContext, useState, useCallback } from "react";
 
-export const LogDataContext = createContext();
+export const LogChartContext = createContext();
 
 // Helper to transform AI service response to LiveLogStream format
 const transformAIDataToLogs = (data) => {
@@ -26,17 +26,17 @@ const transformAIDataToLogs = (data) => {
   }));
 };
 
-export function LogDataProvider({ children }) {
+export function LogChartProvider({ children }) {
   const [logTableData, setLogTableData] = useState([]);
 
-  const setLogsFromUpload = useCallback((tableData) => {
+  const setChartfromUpload = useCallback((tableData) => {
     const transformedLogs = transformAIDataToLogs(tableData);
     setLogTableData(transformedLogs);
   }, []);
 
   return (
-    <LogDataContext.Provider value={{ logTableData, setLogsFromUpload }}>
+    <LogChartContext.Provider value={{ logTableData, setChartfromUpload }}>
       {children}
-    </LogDataContext.Provider>
+    </LogChartContext.Provider>
   );
 }

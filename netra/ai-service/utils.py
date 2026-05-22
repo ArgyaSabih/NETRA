@@ -155,7 +155,8 @@ async def predict(file: UploadFile = File(...)):
         "benign_count": int(benign_count),
         "anomaly_scores": scores.tolist(),
         "model_used": "isolation_forest",
-        "table": df_result.sample(10).to_json()
+        "table": df_result.sample(10).to_json(),
+        "full_table": df_result.to_json()
     }
 
 print("[AI Service] Utils module loaded - AI service NETRA is ready")
