@@ -92,31 +92,6 @@ async def health_check():
     """Health check endpoint"""
     return {"status": "healthy", "service": "AI Prediction Service", "version": "1.0.0"}
 
-@router.post("/logs")
-async def logs(file: UploadFile = File(...)):
-    try:
-        print(f"[AI Service] Preparing log file")
-        if (file.filename.endswith(".log") or file.filename.endswith(".test")):
-            print(f"[AI Service] Preprocessing file as CSV: {file.filename} from Zeek log")
-            contents = await file.read()
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".log") as tmp:
-                tmp.write(contents)
-                tmp_path = tmp.name
-            try:
-                df = parse_zeek_log(tmp_path)
-            finally:
-                os.unlink(tmp_path)
-        else:
-            contents = await file.read()
-            df = pd.read_csv(StringIO(contents.decode("utf-8")), index_col=0) 
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Failed to parse CSV: {e}")
-
-    return {
-        "log_data": df.to_json()
-    }
-
-
 @router.post("/predict-new")
 async def predict(file: UploadFile = File(...)):
     try:
@@ -164,6 +139,11 @@ async def predict(file: UploadFile = File(...)):
         benign_count = counts.get('benign-like', 0)
         malicious_count = counts.get('potentially malicious', 0)
         
+        # final dataframe
+        df_result = pd.DataFrame(df_test[['ts', 'id.orig_h', 'id.resp_h', 'proto']])
+        df_result['prediction'] = pred
+        df_result['prediction'] = df_result['prediction'].map({-1: 'potentially malicious', 1: 'benign-like'})
+        
     except Exception as pe:
         raise HTTPException(status_code=400, detail=f"Failed to predict data: {pe}")
 
@@ -173,8 +153,9 @@ async def predict(file: UploadFile = File(...)):
         "total_records": int(total_records),
         "malicious_count": int(malicious_count),
         "benign_count": int(benign_count),
-        "anomaly_scores": confidence_scores.tolist(),
-        "model_used": "isolation_forest"
+        "anomaly_scores": scores.tolist(),
+        "model_used": "isolation_forest",
+        "table": df_result.sample(10).to_json()
     }
 
 print("[AI Service] Utils module loaded - AI service NETRA is ready")

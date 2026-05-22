@@ -2,6 +2,7 @@ import "@/src/styles/globals.css";
 import {InterBold, InterLight, InterRegular, InterSemiBold, InterMedium} from "@/src/utils/helper/font";
 import {getMetaData} from "@/src/utils/helper/getMetaData";
 import {AuthSessionProvider} from "@/src/components/auth/AuthSessionProvider";
+import {LogDataProvider} from "@/src/components/contexts/LogDataProvider";
 import AppShell from "@/src/components/layout/AppShell";
 
 export const metadata = getMetaData({
@@ -16,7 +17,9 @@ export default function RootLayout({children}) {
         className={`${InterBold.variable} ${InterLight.variable} ${InterRegular.variable} ${InterSemiBold.variable} ${InterMedium.variable} antialiased`}
       >
         <AuthSessionProvider>
-          <AppShell>{children}</AppShell>
+          <LogDataProvider>
+            <AppShell>{children}</AppShell>
+          </LogDataProvider>
         </AuthSessionProvider>
       </body>
     </html>

@@ -45,6 +45,7 @@ router.post("/", requireAuth, upload.single("file"), async (req, res) => {
         timeout: 30000,
       }
     );
+
     try {
     // Store in database
     const uploadedLog = await prisma.uploadedLog.create({
@@ -61,7 +62,8 @@ router.post("/", requireAuth, upload.single("file"), async (req, res) => {
     res.json({
       success: true,
       message: "File uploaded and analyzed successfully",
-      data: uploadedLog
+      data: uploadedLog,
+      tableData: aiResponse.data.table,  // Store the actual table data
     });
     } catch (uploadError) {
       console.error("Failed to upload to Database:", uploadError.message);
@@ -70,44 +72,6 @@ router.post("/", requireAuth, upload.single("file"), async (req, res) => {
   } catch (aiError) {
     console.error("AI Service error:", aiError.message);
   }
-});
-
-// SIMPLIFIED POST - Upload file to get table from CSV
-router.post("/table", requireAuth, upload.single("file"), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: "No file uploaded" });
-    }
-    const ext = req.file.originalname.split('.').pop().toLowerCase();
-    if (!['log', 'test', 'csv'].includes(ext)) {
-      return res.status(400).json({ error: "Unsupported file type" });
-    }
-
-    // Forward as multipart form — exactly what the AI service expects
-    const form = new FormData();
-    form.append("file", req.file.buffer, {
-      filename: req.file.originalname,
-      contentType: req.file.mimetype,
-    });
-
-    const aiResponse = await axios.post(
-      `${AI_SERVICE_URL}/logs`,
-      form,
-      {
-        headers: form.getHeaders(),
-        timeout: 30000,
-      }
-    );
-
-    res.json({
-      message: "sucess",
-      table: aiResponse.data
-    })
-
-  } catch (aiError) {
-    console.error("AI Service error:", aiError.message);
-    return res.status(500).json({ error: aiError.message || "AI Service error" });
-}
 });
 
 // GET - List user uploads

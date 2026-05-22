@@ -1,16 +1,15 @@
 "use client";
 
-import {useState} from "react";
+import {useState, useContext} from "react";
 import {FiChevronDown, FiRefreshCw} from "react-icons/fi";
-import {useLiveLogsData} from "@/src/hooks/useDashboard";
+import {LogDataContext} from "@/src/components/contexts/LogDataProvider";
 
 export default function LiveLogStream() {
   const [isAutoScroll, setIsAutoScroll] = useState(true);
-  const {logs: displayLogs, loading, refetch} = useLiveLogsData(4);
-
-  const handleRefresh = () => {
-    refetch();
-  };
+  const { logTableData } = useContext(LogDataContext);
+  const displayLogs = logTableData || [];
+  console.log("displayed logs:", displayLogs)
+  const loading = false;
 
   return (
     <div className="p-6 rounded-lg border border-slate-700/50 bg-slate-800/50">
@@ -27,7 +26,7 @@ export default function LiveLogStream() {
             <span className="text-xs text-slate-400">AUTO-SCROLL ON</span>
           </label>
           <button
-            onClick={handleRefresh}
+            onClick={() => {}}
             disabled={loading}
             className={`p-2 hover:bg-slate-700/50 rounded-lg transition-all disabled:opacity-50 ${
               loading ? "animate-spin" : ""
@@ -43,11 +42,10 @@ export default function LiveLogStream() {
           <thead>
             <tr className="border-b border-slate-700/50">
               <th className="text-left py-3 px-4 text-slate-400 font-medium">TIMESTAMP</th>
-              <th className="text-left py-3 px-4 text-slate-400 font-medium">SEVERITY</th>
               <th className="text-left py-3 px-4 text-slate-400 font-medium">SOURCE IP</th>
+              <th className="text-left py-3 px-4 text-slate-400 font-medium">DESTINATION IP</th>
+              <th className="text-left py-3 px-4 text-slate-400 font-medium">PROTOCOL</th>
               <th className="text-left py-3 px-4 text-slate-400 font-medium">EVENT TYPE</th>
-              <th className="text-left py-3 px-4 text-slate-400 font-medium">MESSAGE</th>
-              <th className="text-left py-3 px-4 text-slate-400 font-medium">ACTION</th>
             </tr>
           </thead>
           <tbody>
@@ -55,33 +53,22 @@ export default function LiveLogStream() {
               displayLogs.map((log, index) => (
                 <tr
                   key={log.id || index}
-                  className={`border-b border-slate-700/30 hover:bg-slate-700/30 transition-colors ${log.statusColor}`}
+                  className={`border-b border-slate-700/30 hover:bg-slate-700/30`}
                 >
                   <td className="py-3 px-4">
-                    <code className="text-xs text-slate-300">
-                      {typeof log.timestamp === "string"
-                        ? new Date(log.timestamp).toLocaleString()
-                        : log.timestamp}
-                    </code>
-                  </td>
-                  <td className="py-3 px-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${log.severityColor}`}>
-                      {log.severity}
-                    </span>
+                    <code className="text-xs text-slate-300">{log.timestamp}</code>
                   </td>
                   <td className="py-3 px-4">
                     <code className="text-xs text-slate-300">{log.sourceIp}</code>
                   </td>
                   <td className="py-3 px-4">
-                    <span className="text-slate-300">{log.eventType}</span>
+                    <code className="text-xs text-slate-300">{log.destIp}</code>
                   </td>
                   <td className="py-3 px-4">
-                    <span className="text-slate-400">{log.message}</span>
+                    <code className="text-slate-300">{log.protocol}</code>
                   </td>
                   <td className="py-3 px-4">
-                    <button className="text-xs font-medium text-blue-400 hover:text-blue-300 transition-colors">
-                      {log.action}
-                    </button>
+                    <code className="text-slate-400">{log.eventType}</code>
                   </td>
                 </tr>
               ))

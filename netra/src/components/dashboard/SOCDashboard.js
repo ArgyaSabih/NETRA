@@ -4,7 +4,7 @@ import {useState} from "react";
 import Link from "next/link";
 import StatCard from "./StatCard";
 import NetworkTrafficChart from "./NetworkTrafficChart";
-import ThreatCategories from "./ThreatCategories";
+// import ThreatCategories from "./ThreatCategories";
 import LiveLogStream from "./LiveLogStream";
 import Sidebar from "@/src/components/shared/Sidebar";
 import {FiAlertTriangle, FiZap, FiActivity, FiShield, FiMenu, FiX, FiUpload} from "react-icons/fi";
@@ -13,7 +13,7 @@ import {useDashboardData, useThreatData} from "@/src/hooks/useDashboard";
 export default function SOCDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const {data: dashboardMetrics} = useDashboardData();
-  const {threats} = useThreatData();
+  // const {threats} = useThreatData();
 
   return (
     <div className="flex h-screen overflow-hidden text-white bg-slate-950">
@@ -100,13 +100,10 @@ export default function SOCDashboard() {
                 />
               </div>
 
-              {/* Charts and Logs */}
-              <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                <div className="lg:col-span-2">
+              {/* Charts */}
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-1">
+                <div className="lg:col-span-1">
                   <NetworkTrafficChart />
-                </div>
-                <div>
-                  <ThreatCategories threats={threats} />
                 </div>
               </div>
 

@@ -1,13 +1,15 @@
 "use client";
 
-import {useState, useRef} from "react";
+import {useState, useRef, useContext} from "react";
 import {useSession} from "next-auth/react";
 import {FiUploadCloud, FiCheckCircle, FiAlertCircle, FiX, FiDownload, FiMenu} from "react-icons/fi";
 import {useRouter} from "next/navigation";
 import Sidebar from "@/src/components/shared/Sidebar";
+import {LogDataContext} from "@/src/components/contexts/LogDataProvider";
 
 export default function UploadLogForm() {
   const { data: session } = useSession();
+  const { setLogsFromUpload } = useContext(LogDataContext);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -131,6 +133,13 @@ const processFile = async (file) => {
     setUploadProgress(100);
     setUploadStatus("success");
     setStatusMessage(`File uploaded successfully! ${data.recordsProcessed} records analyzed.`);
+
+    // Pass table data to context for LiveLogStream
+    if (data.tableData) {
+      setLogsFromUpload(data.tableData);
+    } else {
+      console.warn("[UploadForm] No table data found in response");
+    }
 
     const newUpload = {
       id: recentUploads.length + 1,
