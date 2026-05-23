@@ -2,7 +2,7 @@
 
 import {Resend} from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const getResend = () => new Resend(process.env.RESEND_API_KEY);
 
 /**
  * Send verification email to user
@@ -31,7 +31,7 @@ export async function sendVerificationEmail(email, token) {
   const from = process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
 
   try {
-    const {data, error} = await resend.emails.send({
+    const {data, error} = await getResend().emails.send({
       from,
       to: email,
       subject: "Verify your NETRA account",
@@ -207,7 +207,7 @@ export async function sendPasswordResetEmail(email, resetLink) {
   const from = process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
 
   try {
-    const {data, error} = await resend.emails.send({
+    const {data, error} = await getResend().emails.send({
       from,
       to: email,
       subject: "Reset your NETRA password",

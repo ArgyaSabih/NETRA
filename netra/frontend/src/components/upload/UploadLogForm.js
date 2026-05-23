@@ -112,7 +112,7 @@ const processFile = async (file) => {
       });
     }, 300);
 
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "";
     const response = await fetch(`${backendUrl}/api/upload-log`, {
       method: "POST",
       headers: {

@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+const BACKEND_URL = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
 /**
  * Make API calls to the Express backend

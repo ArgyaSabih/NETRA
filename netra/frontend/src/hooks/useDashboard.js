@@ -1,6 +1,8 @@
 import {useState, useEffect, useCallback} from "react";
+import {useSession} from "next-auth/react";
 
 export function useDashboardData() {
+  const {data: session, status} = useSession();
   const [data, setData] = useState({
     totalAlerts: 0,
     activeThreats: 0,
@@ -12,9 +14,13 @@ export function useDashboardData() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    if (status === "loading") return;
+
     const fetchData = async () => {
       try {
-        const response = await fetch("/api/dashboard");
+        const response = await fetch("/api/dashboard", {
+          headers: session?.user?.id ? {"x-user-id": session.user.id} : {}
+        });
         if (!response.ok) throw new Error("Failed to fetch dashboard data");
         const result = await response.json();
         setData(result);
@@ -27,7 +33,7 @@ export function useDashboardData() {
     };
 
     fetchData();
-  }, []);
+  }, [session?.user?.id, status]);
 
   return {data, loading, error};
 }

@@ -8,12 +8,11 @@ import ThreatCategories from "./ThreatCategories";
 import LiveLogStream from "./LiveLogStream";
 import Sidebar from "@/src/components/shared/Sidebar";
 import {FiAlertTriangle, FiZap, FiActivity, FiShield, FiMenu, FiX, FiUpload} from "react-icons/fi";
-import {useDashboardData, useThreatData} from "@/src/hooks/useDashboard";
+import {useDashboardData} from "@/src/hooks/useDashboard";
 
 export default function SOCDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const {data: dashboardMetrics} = useDashboardData();
-  // const {threats} = useThreatData();
 
   return (
     <div className="flex h-screen overflow-hidden text-white bg-slate-950">
