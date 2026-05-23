@@ -143,6 +143,7 @@ async def predict(file: UploadFile = File(...)):
         df_result = pd.DataFrame(df_test[['ts', 'id.orig_h', 'id.resp_h', 'proto']])
         df_result['prediction'] = pred
         df_result['prediction'] = df_result['prediction'].map({-1: 'potentially malicious', 1: 'benign-like'})
+        df_malicious = df_result[df_result['prediction'] == 'potentially malicious']
         
     except Exception as pe:
         raise HTTPException(status_code=400, detail=f"Failed to predict data: {pe}")
@@ -155,7 +156,7 @@ async def predict(file: UploadFile = File(...)):
         "benign_count": int(benign_count),
         "anomaly_scores": scores.tolist(),
         "model_used": "isolation_forest",
-        "table": df_result.sample(10).to_json(),
+        "table": df_malicious.to_json(),
         "full_table": df_result.to_json()
     }
 
