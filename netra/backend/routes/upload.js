@@ -46,8 +46,6 @@ router.post("/", requireAuth, upload.single("file"), async (req, res) => {
       }
     );
 
-    try {
-    // Store in database
     const uploadedLog = await prisma.uploadedLog.create({
       data: {
         user_id: req.userId,
@@ -66,12 +64,16 @@ router.post("/", requireAuth, upload.single("file"), async (req, res) => {
       tableData: aiResponse.data.table,  // Store the actual table data
       fullTable: aiResponse.data.full_table
     });
-    } catch (uploadError) {
-      console.error("Failed to upload to Database:", uploadError.message);
-    }
 
-  } catch (aiError) {
-    console.error("AI Service error:", aiError.message);
+  } catch (processingError) {
+    console.error("Upload processing error:", processingError.message);
+    const status = processingError.response?.status || 500;
+    const detail = processingError.response?.data?.detail || processingError.message || "Upload processing failed";
+    res.status(status).json({
+      success: false,
+      error: "Upload processing failed",
+      message: detail
+    });
   }
 });
 
