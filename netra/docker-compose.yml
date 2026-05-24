@@ -1,39 +1,46 @@
 services:
   frontend:
-    build: .
+    build:
+      context: ./frontend
     ports:
-      - "127.0.0.1:3000:3000"
+      - "3000:3000"
     environment:
-      - NEXT_PUBLIC_BACKEND_URL=http://backend:5000
-      - NEXTAUTH_URL=http://localhost:3000
+      NODE_ENV: production
+      PORT: 3000
+      NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL:-}
+      BACKEND_URL: ${BACKEND_URL:-http://backend:5000}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-change-me-for-local-compose}
+      AUTH_TRUST_HOST: ${AUTH_TRUST_HOST:-true}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://user:password@host.docker.internal:5432/netra}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
     depends_on:
       - backend
-      - ai-service
     networks:
       - netra-network
 
   backend:
     build:
-      context: .
-      dockerfile: backend/Dockerfile
+      context: ./backend
     ports:
-      - "127.0.0.1:5000:5000"
+      - "5000:5000"
     environment:
-      - NODE_ENV=production
-      - AI_SERVICE_URL=http://ai-service:8000
+      NODE_ENV: production
+      PORT: 5000
+      DATABASE_URL: ${DATABASE_URL:-postgresql://user:password@host.docker.internal:5432/netra}
+      AI_SERVICE_URL: http://ai-service:8000
     depends_on:
       - ai-service
     networks:
       - netra-network
 
   ai-service:
-    build: ./ai-service
+    build:
+      context: ./ai-service
     ports:
-      - "127.0.0.1:8000:8000"
-    volumes:
-      - ./ai-service:/app 
+      - "8000:8000"
     environment:
-      - ENV=development
+      ENV: production
     networks:
       - netra-network
 

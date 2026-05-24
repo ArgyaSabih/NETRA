@@ -1,24 +1,17 @@
 FROM node:20-alpine
 
 WORKDIR /app
+ARG DATABASE_URL=postgresql://user:password@localhost:5432/netra
 
-# Copy package files
-COPY backend/package.json backend/package-lock.json ./
+COPY package.json package-lock.json ./
 
-# Install dependencies
 RUN npm ci
 
-# Copy backend source code
-COPY backend/ .
+COPY . .
 
-# Copy Prisma schema from root
-COPY prisma/ ./prisma/
+RUN npx prisma generate --schema ./db/schema.prisma && \
+    npm prune --omit=dev
 
-# Generate Prisma client
-RUN npx prisma generate --schema ./db/schema.prisma
-
-# Expose port
 EXPOSE 5000
 
-# Start the app
 CMD ["npm", "start"]
