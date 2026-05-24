@@ -11,6 +11,7 @@ services:
       BACKEND_URL: ${BACKEND_URL:-http://backend:5000}
       NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-change-me-for-local-compose}
+      AUTH_TRUST_HOST: ${AUTH_TRUST_HOST:-true}
       DATABASE_URL: ${DATABASE_URL:-postgresql://user:password@host.docker.internal:5432/netra}
       RESEND_API_KEY: ${RESEND_API_KEY:-}
     depends_on:

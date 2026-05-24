@@ -43,6 +43,7 @@ NODE_ENV=production
 PORT=3000
 NEXTAUTH_URL=https://<alb-dns-or-domain>
 NEXTAUTH_SECRET=<generated-secret>
+AUTH_TRUST_HOST=true
 NEXT_PUBLIC_BACKEND_URL=
 BACKEND_URL=http://<backend-internal-or-alb-path>
 DATABASE_URL=<database-url>
