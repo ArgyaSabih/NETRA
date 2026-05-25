@@ -8,7 +8,9 @@ export function useDashboardData() {
     activeThreats: 0,
     systemHealth: 100,
     aiRiskScore: "N/A",
-    hasData: false
+    hasData: false,
+    tableData: null,
+    fullTable: null
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

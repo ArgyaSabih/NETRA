@@ -36,14 +36,14 @@ export default function StatCard({
     <div
       onClick={onClick}
       className={`
-        p-6 rounded-lg border transition-all cursor-pointer
+        p-6 rounded-lg border transition-all
         hover:border-slate-600 hover:shadow-lg hover:shadow-slate-900
         ${getStatusColor()} ${className}
       `}
     >
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-slate-400 text-sm font-medium mb-2">{title}</p>
+          <p className="mb-2 text-sm font-medium text-slate-400">{title}</p>
           <div className="flex items-baseline gap-2">
             <h3 className="text-3xl font-bold text-white">{value}</h3>
             {trendValue && (
@@ -53,7 +53,7 @@ export default function StatCard({
               </div>
             )}
           </div>
-          {subtitle && <p className="text-xs text-slate-500 mt-2">{subtitle}</p>}
+          {subtitle && <p className="mt-2 text-xs text-slate-500">{subtitle}</p>}
         </div>
         {Icon && (
           <div className="text-slate-500">

@@ -15,10 +15,13 @@ const requireAuth = (req, res, next) => {
 // GET dashboard data
 router.get("/", requireAuth, async (req, res) => {
   try {
-    // Check if user has uploaded any logs
+    // Get most recent uploaded log
     const uploadedLog = await prisma.uploadedLog.findFirst({
       where: {
         user_id: req.userId
+      },
+      orderBy: {
+        uploadedAt: "desc"
       }
     });
 
@@ -31,9 +34,15 @@ router.get("/", requireAuth, async (req, res) => {
         aiRiskScore: "N/A",
         lastUpdated: new Date(),
         uptime: "100%",
-        hasData: false
+        hasData: false,
+        tableData: null,
+        fullTable: null
       });
     }
+
+    const stored = uploadedLog.tableData || {};
+    const tableData = stored.table ?? null;
+    const fullTable = stored.fullTable ?? null;
 
     // Return data based on uploaded logs
     const dashboardData = {
@@ -46,7 +55,9 @@ router.get("/", requireAuth, async (req, res) => {
       aiRiskScore: uploadedLog.threatsDetected > 50 ? "High" : "Low",
       lastUpdated: uploadedLog.uploadedAt,
       uptime: "99.8%",
-      hasData: true
+      hasData: true,
+      tableData,
+      fullTable
     };
 
     res.json(dashboardData);

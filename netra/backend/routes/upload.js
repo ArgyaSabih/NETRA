@@ -53,6 +53,10 @@ router.post("/", requireAuth, upload.single("file"), async (req, res) => {
         fileSize: size,
         recordsProcessed: aiResponse.data.total_records,
         threatsDetected: aiResponse.data.malicious_count,
+        tableData: {
+          table: aiResponse.data.table,
+          fullTable: aiResponse.data.full_table
+        },
         uploadedAt: new Date()
       }
     });
@@ -60,8 +64,17 @@ router.post("/", requireAuth, upload.single("file"), async (req, res) => {
     res.json({
       success: true,
       message: "File uploaded and analyzed successfully",
-      data: uploadedLog,
-      tableData: aiResponse.data.table,  // Store the actual table data
+      data: {
+        id: uploadedLog.id,
+        fileName: uploadedLog.fileName,
+        fileSize: uploadedLog.fileSize,
+        recordsProcessed: uploadedLog.recordsProcessed,
+        threatsDetected: uploadedLog.threatsDetected,
+        uploadedAt: uploadedLog.uploadedAt
+      },
+      recordsProcessed: uploadedLog.recordsProcessed,
+      threatsDetected: uploadedLog.threatsDetected,
+      tableData: aiResponse.data.table,
       fullTable: aiResponse.data.full_table
     });
 

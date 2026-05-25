@@ -56,24 +56,6 @@ export default function Sidebar({activePage, sidebarOpen}) {
             );
           })}
         </nav>
-
-        <div className="pt-8 mt-8 border-t border-slate-800">
-          <p className="mb-3 text-xs font-medium text-slate-500">CONFIGURATION</p>
-          <nav className="space-y-2">
-            {configItems.map((item, i) => {
-              const Icon = item.icon;
-              return (
-                <button
-                  key={i}
-                  className="flex items-center w-full gap-3 px-4 py-2 text-left transition-all rounded-lg text-slate-400 hover:bg-slate-800"
-                >
-                  <Icon size={20} />
-                  <span className="text-sm font-medium">{item.label}</span>
-                </button>
-              );
-            })}
-          </nav>
-        </div>
       </div>
       <div className="absolute left-0 right-0 p-6 bottom-20">
         <button

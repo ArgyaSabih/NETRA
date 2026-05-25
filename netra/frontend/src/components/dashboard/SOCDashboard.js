@@ -1,6 +1,6 @@
 "use client";
 
-import {useState} from "react";
+import {useState, useContext, useEffect} from "react";
 import Link from "next/link";
 import StatCard from "./StatCard";
 import NetworkTrafficChart from "./NetworkTrafficChart";
@@ -9,10 +9,34 @@ import LiveLogStream from "./LiveLogStream";
 import Sidebar from "@/src/components/shared/Sidebar";
 import {FiAlertTriangle, FiZap, FiActivity, FiShield, FiMenu, FiX, FiUpload} from "react-icons/fi";
 import {useDashboardData} from "@/src/hooks/useDashboard";
+import {LogDataContext} from "@/src/components/contexts/LogDataProvider";
+import {LogChartContext} from "@/src/components/contexts/ChartDataProvider";
 
 export default function SOCDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const {data: dashboardMetrics} = useDashboardData();
+  const {logTableData, setLogsFromUpload} = useContext(LogDataContext);
+  const {logTableData: chartTableData, setChartfromUpload} = useContext(LogChartContext);
+
+  // Rehydrate in-memory contexts from persisted dashboard data after a refresh,
+  // so LiveLogStream/Charts don't go blank when only StatCards survive.
+  useEffect(() => {
+    if (!dashboardMetrics?.hasData) return;
+    if (dashboardMetrics.tableData && (!logTableData || logTableData.length === 0)) {
+      setLogsFromUpload(dashboardMetrics.tableData);
+    }
+    if (dashboardMetrics.fullTable && (!chartTableData || chartTableData.length === 0)) {
+      setChartfromUpload(dashboardMetrics.fullTable);
+    }
+  }, [
+    dashboardMetrics?.hasData,
+    dashboardMetrics?.tableData,
+    dashboardMetrics?.fullTable,
+    logTableData,
+    chartTableData,
+    setLogsFromUpload,
+    setChartfromUpload
+  ]);
 
   return (
     <div className="flex h-screen overflow-hidden text-white bg-slate-950">
@@ -31,12 +55,6 @@ export default function SOCDashboard() {
                 {sidebarOpen ? <FiX size={20} /> : <FiMenu size={20} />}
               </button>
               <h1 className="text-xl font-semibold">Security Operations Center</h1>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="items-center hidden gap-2 text-sm sm:flex text-slate-400">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                Real-time AI Monitoring active • System Stable
-              </div>
             </div>
           </div>
         </header>
