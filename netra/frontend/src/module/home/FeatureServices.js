@@ -1,25 +1,24 @@
 "use client";
+import Image from "next/image";
 import DefaultLayout from "@/src/components/layout/DefaultLayout";
 
 export default function FeatureServices() {
   const features = [
     {
       id: 1,
-      title: "DDoS Detection",
+      title: "AI Log Visualization",
       description:
-        "AI-driven traffic analysis instantly flags and mitigates volumetric DDoS attacks, ensuring your services stay online."
+        "Get a real-time overview of your network health with AI-powered dashboards — track total alerts, active threats, system health, and AI risk scores at a glance.",
+      image: "/assets/featureService/ai_log_visualiztion.png",
+      alt: "AI log visualization dashboard showing alerts, active threats, system health, and risk score"
     },
     {
       id: 2,
-      title: "Bruteforce Prevention",
+      title: "Live Log Stream",
       description:
-        "Detect and block repeated unauthorized access attempts with intelligent behavioral analysis."
-    },
-    {
-      id: 3,
-      title: "AI Log Analysis",
-      description:
-        "Automated parsing of system logs to identify anomalies and potential security breaches in real-time."
+        "Monitor every network event as it happens with a live-updating log stream that captures timestamps, source and destination IPs, protocols, and threat classifications.",
+      image: "/assets/featureService/live_log_stream.png",
+      alt: "Live log stream table showing real-time network traffic with source IP, destination IP, protocol, and event type"
     }
   ];
 
@@ -34,19 +33,21 @@ export default function FeatureServices() {
           <h2 className="mt-4 text-4xl font-bold text-gray-900">
             Transforming Network Security with
             <br />
-            AI-Powered Detection & Prevention
+            AI-Powered Detection
           </h2>
         </div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
           {features.map((feature) => (
             <div
               key={feature.id}
               className="overflow-hidden transition-shadow duration-300 bg-white border border-gray-200 rounded-lg hover:shadow-lg"
             >
-              {/* Image Placeholder */}
-              <div className="w-full h-64 bg-gray-300"></div>
+              {/* Feature Image */}
+              <div className="relative w-full h-64">
+                <Image src={feature.image} alt={feature.alt} fill className="object-cover" />
+              </div>
 
               {/* Content */}
               <div className="p-6">
