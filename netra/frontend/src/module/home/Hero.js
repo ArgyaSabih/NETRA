@@ -22,9 +22,11 @@ export default function Hero() {
             </p>
 
             <div>
-              <button className="px-6 py-3 text-white transition bg-gray-600 rounded cursor-pointer font-inter-medium hover:bg-gray-700">
-                Get Started
-              </button>
+              <Link href="/auth/sign-up">
+                <button className="px-6 py-3 text-white transition bg-gray-600 rounded cursor-pointer font-inter-medium hover:bg-gray-700">
+                  Get Started
+                </button>
+              </Link>
             </div>
           </div>
 

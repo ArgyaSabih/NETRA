@@ -49,12 +49,6 @@ export default function Navbar() {
               >
                 Feature
               </button>
-              <button
-                onClick={() => router.push("/#setting")}
-                className="text-sm text-gray-700 transition cursor-pointer hover:text-black hover:scale-105"
-              >
-                Setting
-              </button>
             </div>
 
             {/* Buttons */}
@@ -117,13 +111,6 @@ export default function Navbar() {
               onClick={() => setIsOpen(false)}
             >
               Feature
-            </Link>
-            <Link
-              href="#setting"
-              className="block py-1 text-sm text-gray-700 transition hover:text-black"
-              onClick={() => setIsOpen(false)}
-            >
-              Setting
             </Link>
             {session ? (
               <>
