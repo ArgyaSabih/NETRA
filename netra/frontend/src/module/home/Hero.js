@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import DefaultLayout from "@/src/components/layout/DefaultLayout";
 
 export default function Hero() {
