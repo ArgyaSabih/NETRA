@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import DefaultLayout from "@/src/components/layout/DefaultLayout";
 
 export default function Hero() {
@@ -27,9 +28,15 @@ export default function Hero() {
             </div>
           </div>
 
-          {/* Right Image Placeholder */}
+          {/* Right Logo */}
           <div className="flex items-center justify-center">
-            <div className="w-full bg-gray-400 rounded-lg aspect-video"></div>
+            <Image
+              src="/assets/favicon/favicon.svg"
+              alt="NETRA logo"
+              width={400}
+              height={400}
+              className="w-full max-w-sm"
+            />
           </div>
         </div>
       </section>
