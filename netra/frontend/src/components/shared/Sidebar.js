@@ -1,17 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import {useSession, signOut} from "next-auth/react";
-import {FiActivity, FiShield, FiUpload, FiLogOut} from "react-icons/fi";
+import {FiActivity, FiUpload, FiLogOut} from "react-icons/fi";
 
 const navItems = [
   {icon: FiActivity, label: "Dashboard", href: "/dashboard", id: "dashboard"},
   {icon: FiUpload, label: "Upload Log", href: "/upload-log", id: "upload-log"}
-];
-
-const configItems = [
-  {icon: FiShield, label: "Settings"},
-  {icon: FiActivity, label: "Users"}
 ];
 
 export default function Sidebar({activePage, sidebarOpen}) {
@@ -21,18 +17,23 @@ export default function Sidebar({activePage, sidebarOpen}) {
     <aside
       className={`
         fixed md:static inset-y-0 left-0 z-40
-        w-64 bg-slate-900 border-r border-slate-800
+        w-[17rem] border-r border-[oklch(0.34_0.018_240)] bg-[oklch(0.18_0.015_240)]
         transform transition-transform duration-300 ease-in-out
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
       `}
     >
-      <div className="p-6">
-        <div className="flex items-center gap-2 mb-8">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600"></div>
-          <span className="text-lg font-bold">NETRA</span>
+      <div className="p-4">
+        <div className="mb-6 flex items-center gap-3 rounded-xl bg-[oklch(0.21_0.016_240)] p-3 shadow-[inset_0_0_0_1px_oklch(0.34_0.018_240)]">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[oklch(0.93_0.01_160)]">
+            <Image src="/assets/favicon/favicon.svg" alt="NETRA logo" width={28} height={28} />
+          </div>
+          <div>
+            <span className="block text-base tracking-tight font-inter-bold">NETRA</span>
+            <span className="text-xs text-[oklch(0.68_0.018_240)]">Security workspace</span>
+          </div>
         </div>
 
-        <nav className="space-y-2">
+        <nav className="space-y-1.5">
           {navItems.map((item, i) => {
             const Icon = item.icon;
             const isActive = activePage === item.id;
@@ -41,12 +42,11 @@ export default function Sidebar({activePage, sidebarOpen}) {
                 key={i}
                 href={item.href}
                 className={`
-                  w-full flex items-center gap-3 px-4 py-2 rounded-lg
-                  transition-all text-left
+                  flex min-h-10 w-full items-center gap-3 rounded-lg px-3 py-2 text-left
                   ${
                     isActive
-                      ? "bg-blue-500/20 text-blue-400 border border-blue-500/50"
-                      : "text-slate-400 hover:bg-slate-800"
+                      ? "bg-[oklch(0.78_0.14_155)] text-[oklch(0.16_0.014_240)]"
+                      : "text-[oklch(0.7_0.018_240)] hover:bg-[oklch(0.23_0.018_240)] hover:text-[oklch(0.94_0.006_240)]"
                   }
                 `}
               >
@@ -57,22 +57,24 @@ export default function Sidebar({activePage, sidebarOpen}) {
           })}
         </nav>
       </div>
-      <div className="absolute left-0 right-0 p-6 bottom-20">
+      <div className="absolute left-0 right-0 p-4 bottom-24">
         <button
           onClick={() => signOut({callbackUrl: "/auth/login"})}
-          className="flex items-center w-full gap-3 px-4 py-2 text-center text-white transition-colors bg-red-500 rounded-lg cursor-pointer hover:bg-red-600"
+          className="flex min-h-10 w-full items-center gap-3 rounded-lg bg-[oklch(0.22_0.035_25)] px-3 py-2 text-center text-[oklch(0.78_0.13_25)] shadow-[inset_0_0_0_1px_oklch(0.43_0.09_25)] cursor-pointer hover:bg-[oklch(0.25_0.045_25)]"
         >
           <FiLogOut size={18} />
           <span className="text-sm font-medium">Logout</span>
         </button>
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 p-6 space-y-3 border-t border-slate-800">
-        <div className="flex items-center gap-3">
-          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600"></div>
+      <div className="absolute bottom-0 left-0 right-0 space-y-3 border-t border-[oklch(0.34_0.018_240)] p-4">
+        <div className="flex items-center gap-3 rounded-xl bg-[oklch(0.21_0.016_240)] p-3">
+          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-[oklch(0.78_0.14_155)] text-sm text-[oklch(0.16_0.014_240)] font-inter-bold">
+            {(session?.user?.name || session?.user?.email || "U").slice(0, 1).toUpperCase()}
+          </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-white truncate">{session?.user?.name || "User"}</p>
-            <p className="text-xs truncate text-slate-400">{session?.user?.email || ""}</p>
+            <p className="text-sm font-medium truncate">{session?.user?.name || "User"}</p>
+            <p className="text-xs truncate text-[oklch(0.68_0.018_240)]">{session?.user?.email || ""}</p>
           </div>
         </div>
       </div>

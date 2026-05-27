@@ -20,75 +20,70 @@ export default function Footer() {
   };
 
   return (
-    <DefaultLayout className="w-full !py-8 bg-gray-100">
+    <DefaultLayout className="w-full !py-10 bg-slate-950 text-white">
       <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-8 xl:gap-40 md:grid-cols-3">
-          {/* Left Section - Logo and Description */}
-          <div className="space-y-4 ">
+          <div className="space-y-4">
             <div className="flex items-center gap-4">
-              <Image src="/assets/favicon/favicon.svg" alt="NETRA Logo" width={32} height={32} />
-              <span className="text-lg text-black font-inter-bold">NETRA</span>
+              <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white">
+                <Image src="/assets/favicon/favicon.svg" alt="NETRA Logo" width={28} height={28} />
+              </span>
+              <span className="text-lg text-white font-inter-bold">NETRA</span>
             </div>
-            <p className="text-sm leading-relaxed text-gray-600 font-inter-regular">
+            <p className="text-sm leading-relaxed text-slate-400 font-inter-regular">
               An AI-powered SIEM platform designed to enhance network security, accountability, and efficiency
               in threat management.
             </p>
-            {/* Colored Circles */}
             <div className="flex gap-3 mt-4">
-              <div className="w-4 h-4 bg-red-500 rounded-full"></div>
-              <div className="w-4 h-4 bg-yellow-400 rounded-full"></div>
-              <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+              <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+              <div className="w-3 h-3 bg-orange-300 rounded-full"></div>
+              <div className="w-3 h-3 bg-emerald-400 rounded-full"></div>
             </div>
           </div>
 
-          {/* Middle Section - Pages */}
           <div className="space-y-4 px-0 md:px-[20%]">
-            <h3 className="text-sm tracking-wide text-black uppercase font-inter-bold">Pages</h3>
+            <h3 className="text-sm tracking-wide text-white uppercase font-inter-bold">Pages</h3>
             <ul className="space-y-2">
               <li>
                 <Link href="/">
                   <button
                     type="button"
                     onClick={goHomeTop}
-                    className="text-sm text-gray-600 transition cursor-pointer font-inter-regular hover:text-black"
+                    className="min-h-10 text-sm text-slate-400 cursor-pointer font-inter-regular hover:text-white"
                   >
                     About Us
                   </button>
                 </Link>
               </li>
               <li>
-                <Link
-                  href="#feature"
-                  className="text-sm text-gray-600 transition font-inter-regular hover:text-black"
-                >
+                <Link href="#feature" className="inline-flex min-h-10 items-center text-sm text-slate-400 font-inter-regular hover:text-white">
                   Feature
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Right Section - Contact */}
           <div className="space-y-4">
-            <h3 className="text-sm tracking-wide text-black uppercase font-inter-bold">Contact</h3>
+            <h3 className="text-sm tracking-wide text-white uppercase font-inter-bold">Contact</h3>
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
-                <FaPhoneAlt className="text-gray-600" />
-                <span className="text-sm text-gray-600 font-inter-regular">(+62) 888-888-888</span>
+                <FaPhoneAlt className="text-slate-500" />
+                <span className="text-sm text-slate-400 font-inter-regular">(+62) 888-888-888</span>
               </li>
               <li className="flex items-start gap-3">
-                <IoMdMail className="text-gray-600" />
-                <span className="text-sm text-gray-600 font-inter-regular">netra@mail.ugm.ac.id</span>
+                <IoMdMail className="text-slate-500" />
+                <span className="text-sm text-slate-400 font-inter-regular">netra@mail.ugm.ac.id</span>
               </li>
               <li className="flex items-start gap-3">
-                <FaLocationDot className="text-gray-600" />
-                <span className="text-sm text-gray-600 font-inter-regular">Sieman, Yogyakarta</span>
+                <FaLocationDot className="text-slate-500" />
+                <span className="text-sm text-slate-400 font-inter-regular">Sleman, Yogyakarta</span>
               </li>
             </ul>
           </div>
         </div>
 
-        <p className="pt-8 text-xs text-center text-gray-500 font-inter-regular">
-          © 2026 NETRA. All rights reserved.
+        <p className="pt-8 text-xs text-center text-slate-500 font-inter-regular">
+          (c) 2026 NETRA. All rights reserved.
         </p>
       </div>
     </DefaultLayout>
