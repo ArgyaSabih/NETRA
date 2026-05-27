@@ -8,6 +8,31 @@ import Sidebar from "@/src/components/shared/Sidebar";
 import {LogDataContext} from "@/src/components/contexts/LogDataProvider";
 import {LogChartContext} from "../contexts/ChartDataProvider";
 
+const supportedFormats = [".LOG", ".CSV", ".TEST"];
+
+const formatFileSize = (bytes) => {
+  if (bytes == null) return "-";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
+};
+
+const formatRelativeTime = (dateInput) => {
+  if (!dateInput) return "";
+  const date = new Date(dateInput);
+  const diffMs = Date.now() - date.getTime();
+  const diffSec = Math.floor(diffMs / 1000);
+  if (diffSec < 60) return "Just now";
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `${diffHr}h ago`;
+  const diffDay = Math.floor(diffHr / 24);
+  if (diffDay === 1) return "Yesterday";
+  if (diffDay < 7) return `${diffDay}d ago`;
+  return date.toLocaleDateString();
+};
+
 export default function UploadLogForm() {
   const {data: session} = useSession();
   const {setLogsFromUpload} = useContext(LogDataContext);
@@ -16,51 +41,29 @@ export default function UploadLogForm() {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [uploadStatus, setUploadStatus] = useState(null); // 'success', 'error', null
+  const [uploadStatus, setUploadStatus] = useState(null);
   const [statusMessage, setStatusMessage] = useState("");
   const [recentUploads, setRecentUploads] = useState([]);
   const [loadingUploads, setLoadingUploads] = useState(true);
   const fileInputRef = useRef(null);
   const router = useRouter();
 
-  const supportedFormats = [".LOG", ".CSV", ".TEST"];
-
-  const formatFileSize = (bytes) => {
-    if (bytes == null) return "—";
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
-  };
-
-  const formatRelativeTime = (dateInput) => {
-    if (!dateInput) return "";
-    const date = new Date(dateInput);
-    const diffMs = Date.now() - date.getTime();
-    const diffSec = Math.floor(diffMs / 1000);
-    if (diffSec < 60) return "Just now";
-    const diffMin = Math.floor(diffSec / 60);
-    if (diffMin < 60) return `${diffMin}m ago`;
-    const diffHr = Math.floor(diffMin / 60);
-    if (diffHr < 24) return `${diffHr}h ago`;
-    const diffDay = Math.floor(diffHr / 24);
-    if (diffDay === 1) return "Yesterday";
-    if (diffDay < 7) return `${diffDay}d ago`;
-    return date.toLocaleDateString();
-  };
-
-  const mapUpload = (u) => ({
-    id: u.id,
-    name: u.fileName,
-    status: "Completed",
-    timestamp: formatRelativeTime(u.uploadedAt),
-    size: formatFileSize(u.fileSize),
-    threatsFound:
-      typeof u.threatsDetected === "number"
-        ? u.threatsDetected > 0
-          ? `${u.threatsDetected} Threats Found`
-          : "Clean"
-        : undefined
-  });
+  const mapUpload = useCallback(
+    (u) => ({
+      id: u.id,
+      name: u.fileName,
+      status: "Completed",
+      timestamp: formatRelativeTime(u.uploadedAt),
+      size: formatFileSize(u.fileSize),
+      threatsFound:
+        typeof u.threatsDetected === "number"
+          ? u.threatsDetected > 0
+            ? `${u.threatsDetected} Threats Found`
+            : "Clean"
+          : undefined
+    }),
+    []
+  );
 
   const fetchRecentUploads = useCallback(async () => {
     try {
@@ -74,14 +77,18 @@ export default function UploadLogForm() {
     } finally {
       setLoadingUploads(false);
     }
-  }, []);
+  }, [mapUpload]);
 
   useEffect(() => {
-    if (session?.user?.id) {
-      fetchRecentUploads();
-    } else {
-      setLoadingUploads(false);
-    }
+    const timer = setTimeout(() => {
+      if (session?.user?.id) {
+        fetchRecentUploads();
+      } else {
+        setLoadingUploads(false);
+      }
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, [session?.user?.id, fetchRecentUploads]);
 
   const handleDragEnter = (e) => {
@@ -147,7 +154,7 @@ export default function UploadLogForm() {
       const response = await fetch(`${backendUrl}/api/upload-log`, {
         method: "POST",
         headers: {
-          // No Content-Type — browser sets it with multipart boundary automatically
+          // No Content-Type; browser sets it with multipart boundary automatically
           "x-user-id": session?.user?.id
         },
         body: formData
@@ -232,22 +239,25 @@ export default function UploadLogForm() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden text-white bg-slate-950">
+    <div className="flex h-screen overflow-hidden bg-[#070b14] text-white">
       <Sidebar activePage="upload-log" sidebarOpen={sidebarOpen} />
 
       {/* Main Content */}
       <div className="flex flex-col flex-1 overflow-hidden">
         {/* Top Bar */}
-        <header className="px-6 py-4 border-b bg-slate-900 border-slate-800">
+        <header className="border-b border-white/10 bg-[#09111f]/95 px-4 py-4 backdrop-blur-xl md:px-6">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 rounded-lg md:hidden hover:bg-slate-800"
+              className="flex h-10 w-10 items-center justify-center rounded-xl md:hidden hover:bg-white/[0.08]"
             >
               {sidebarOpen ? <FiX size={20} /> : <FiMenu size={20} />}
             </button>
             <div>
-              <h1 className="text-xl font-semibold">Upload Network Log</h1>
+              <p className="text-xs font-inter-semibold tracking-[0.18em] text-emerald-300 uppercase">
+                Log analysis
+              </p>
+              <h1 className="mt-1 text-xl tracking-tight font-inter-bold">Upload Network Log</h1>
               <p className="text-sm text-slate-400">
                 Securely upload system logs for real-time AI threat analysis.
               </p>
@@ -255,7 +265,7 @@ export default function UploadLogForm() {
           </div>
         </header>
 
-        <main className="flex-1 overflow-auto bg-slate-950">
+        <main className="flex-1 overflow-auto bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.12),transparent_28%),#070b14]">
           <div className="grid grid-cols-1 gap-6 p-6 mx-auto lg:grid-cols-3 max-w-7xl">
             {/* Upload Section */}
             <div className="space-y-6 lg:col-span-2">
@@ -266,28 +276,28 @@ export default function UploadLogForm() {
                 onDragOver={handleDragOver}
                 onDrop={handleDrop}
                 className={`
-                  border-2 border-dashed rounded-lg p-12 text-center transition-all
+                  rounded-[2rem] p-12 text-center shadow-[0_24px_70px_rgba(0,0,0,0.18),inset_0_0_0_1px_rgba(255,255,255,0.08)]
                   ${
                     isDragging
-                      ? "border-blue-500 bg-blue-500/10"
-                      : "border-slate-700 bg-slate-900/50 hover:border-slate-600"
+                      ? "bg-emerald-500/12 ring-4 ring-emerald-500/15"
+                      : "bg-white/[0.06] hover:bg-white/[0.08]"
                   }
                 `}
               >
                 <div className="flex flex-col items-center gap-4">
-                  <div className="text-4xl text-slate-500">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-white text-slate-950">
                     <FiUploadCloud />
                   </div>
                   <div>
-                    <h3 className="mb-1 text-xl font-semibold">Drag and drop log files here</h3>
+                    <h3 className="mb-1 text-xl font-inter-bold">Drag and drop log files here</h3>
                     <p className="text-sm text-slate-400">or click to browse from your local drive</p>
                   </div>
                   <button
                     onClick={handleSelectFiles}
                     disabled={isUploading}
-                    className="px-6 py-2 mt-4 transition-colors border rounded-lg bg-slate-900 border-slate-700 hover:bg-slate-800 disabled:opacity-50"
+                    className="mt-4 min-h-11 rounded-2xl bg-white px-6 py-2 text-sm text-slate-950 shadow-[0_18px_45px_rgba(0,0,0,0.2)] font-inter-semibold hover:bg-slate-100 disabled:opacity-50"
                   >
-                    📁 Select Files
+                    Select Files
                   </button>
                 </div>
 
@@ -303,15 +313,15 @@ export default function UploadLogForm() {
 
               {/* Upload Progress */}
               {isUploading && (
-                <div className="p-6 border rounded-lg bg-slate-900/50 border-slate-700">
+                <div className="rounded-3xl bg-white/[0.06] p-6 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]">
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">Uploading and analyzing...</span>
-                      <span className="text-sm text-slate-400">{Math.round(uploadProgress)}%</span>
+                      <span className="text-sm text-slate-400 tabular-nums">{Math.round(uploadProgress)}%</span>
                     </div>
-                    <div className="w-full h-2 overflow-hidden rounded-full bg-slate-800">
+                    <div className="w-full h-2 overflow-hidden rounded-full bg-white/[0.08]">
                       <div
-                        className="h-full transition-all duration-300 bg-gradient-to-r from-blue-500 to-purple-600"
+                        className="h-full bg-gradient-to-r from-emerald-400 to-sky-400 transition-[width] duration-300"
                         style={{width: `${uploadProgress}%`}}
                       ></div>
                     </div>
@@ -321,7 +331,7 @@ export default function UploadLogForm() {
 
               {/* Status Messages */}
               {uploadStatus === "success" && (
-                <div className="flex items-start gap-3 p-4 border rounded-lg bg-green-500/10 border-green-500/50">
+                <div className="flex items-start gap-3 rounded-2xl bg-emerald-500/10 p-4 shadow-[inset_0_0_0_1px_rgba(16,185,129,0.25)]">
                   <FiCheckCircle className="text-green-500 flex-shrink-0 mt-0.5" size={20} />
                   <div>
                     <h3 className="font-semibold text-green-400">Upload Successful</h3>
@@ -331,7 +341,7 @@ export default function UploadLogForm() {
               )}
 
               {uploadStatus === "error" && (
-                <div className="flex items-start gap-3 p-4 border rounded-lg bg-red-500/10 border-red-500/50">
+                <div className="flex items-start gap-3 rounded-2xl bg-red-500/10 p-4 shadow-[inset_0_0_0_1px_rgba(248,113,113,0.25)]">
                   <FiAlertCircle className="text-red-500 flex-shrink-0 mt-0.5" size={20} />
                   <div>
                     <h3 className="font-semibold text-red-400">Upload Failed</h3>
@@ -341,13 +351,13 @@ export default function UploadLogForm() {
               )}
 
               {/* Supported Formats */}
-              <div className="p-6 border rounded-lg bg-slate-900/50 border-slate-700">
-                <h3 className="mb-3 text-sm font-semibold text-slate-300">✓ SUPPORTED FORMATS</h3>
+              <div className="rounded-3xl bg-white/[0.06] p-6 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]">
+                <h3 className="mb-3 text-sm text-slate-300 font-inter-semibold">SUPPORTED FORMATS</h3>
                 <div className="flex flex-wrap gap-2">
                   {supportedFormats.map((format, i) => (
                     <span
                       key={i}
-                      className="px-3 py-1 text-sm border rounded bg-slate-800 border-slate-700 text-slate-300"
+                      className="rounded-full bg-white/[0.08] px-3 py-1 text-sm text-slate-300 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]"
                     >
                       {format}
                     </span>
@@ -357,10 +367,10 @@ export default function UploadLogForm() {
             </div>
 
             {/* Recent Uploads Section */}
-            <div className="p-6 border rounded-lg bg-slate-900/50 border-slate-700 h-fit">
+            <div className="h-fit rounded-[2rem] bg-white/[0.06] p-6 shadow-[0_24px_70px_rgba(0,0,0,0.18),inset_0_0_0_1px_rgba(255,255,255,0.08)]">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold">Recent Uploads</h2>
-                <a href="#" className="text-xs text-blue-400 hover:text-blue-300">
+                <a href="#" className="text-xs text-emerald-300 hover:text-emerald-200">
                   View All
                 </a>
               </div>
@@ -374,7 +384,7 @@ export default function UploadLogForm() {
                 {recentUploads.map((upload) => (
                   <div
                     key={upload.id}
-                    className="p-3 transition-colors border rounded-lg bg-slate-800/50 border-slate-700 hover:bg-slate-800"
+                    className="rounded-2xl bg-white/[0.05] p-3 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.07)] hover:bg-white/[0.08]"
                   >
                     <div className="flex items-start gap-3">
                       <div className="mt-1 text-slate-400">
@@ -390,13 +400,13 @@ export default function UploadLogForm() {
                         <p className="text-sm font-medium truncate">{upload.name}</p>
                         <p className="text-xs text-slate-400">
                           {upload.status}
-                          {upload.threatsFound && ` • ${upload.threatsFound}`}
+                          {upload.threatsFound && ` - ${upload.threatsFound}`}
                         </p>
                         <p className="mt-1 text-xs text-slate-500">{upload.timestamp}</p>
                       </div>
                       <div className="flex-shrink-0 text-right">
-                        <p className="text-xs text-slate-400">{upload.size}</p>
-                        <button className="mt-1 text-slate-500 hover:text-slate-300">
+                        <p className="text-xs text-slate-400 tabular-nums">{upload.size}</p>
+                        <button className="mt-1 flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-white/[0.08] hover:text-slate-300">
                           <FiDownload size={14} />
                         </button>
                       </div>
@@ -411,7 +421,7 @@ export default function UploadLogForm() {
 
       {/* Mobile Overlay */}
       {sidebarOpen && (
-        <div className="fixed inset-0 z-30 bg-black/50 md:hidden" onClick={() => setSidebarOpen(false)}></div>
+        <div className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm md:hidden" onClick={() => setSidebarOpen(false)}></div>
       )}
     </div>
   );
