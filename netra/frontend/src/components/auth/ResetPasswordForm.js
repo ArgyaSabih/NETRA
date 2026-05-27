@@ -4,6 +4,9 @@ import {useMemo, useState} from "react";
 import Link from "next/link";
 import {IoMdEye, IoMdEyeOff} from "react-icons/io";
 
+const inputClass =
+  "min-h-12 w-full rounded-2xl bg-slate-50 px-4 text-slate-950 shadow-[inset_0_0_0_1px_rgba(15,23,42,0.1)] placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/15";
+
 export default function ResetPasswordForm({token}) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -57,89 +60,77 @@ export default function ResetPasswordForm({token}) {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h1 className="mb-2 text-3xl text-black font-inter-bold">Reset Password</h1>
-        <p className="text-sm text-gray-600 font-inter-regular">Choose a new password for your account.</p>
+    <div className="mx-auto w-full max-w-md space-y-7">
+      <div>
+        <p className="text-sm font-inter-semibold tracking-[0.18em] text-emerald-700 uppercase">Account recovery</p>
+        <h1 className="mt-3 text-4xl tracking-tight text-slate-950 font-inter-bold">Reset password</h1>
+        <p className="mt-3 text-sm leading-6 text-slate-600">Choose a new password for your account.</p>
       </div>
 
       {message && (
-        <div className="p-4 border border-green-200 rounded-lg bg-green-50">
-          <p className="text-sm text-green-800 font-inter-medium">{message}</p>
+        <div className="rounded-2xl bg-emerald-50 p-4 text-sm text-emerald-800 shadow-[inset_0_0_0_1px_rgba(16,185,129,0.2)] font-inter-medium">
+          {message}
         </div>
       )}
 
       {error && (
-        <div className="p-4 border border-red-200 rounded-lg bg-red-50">
-          <p className="text-sm text-red-800 font-inter-medium">{error}</p>
+        <div className="rounded-2xl bg-red-50 p-4 text-sm text-red-800 shadow-[inset_0_0_0_1px_rgba(239,68,68,0.18)] font-inter-medium">
+          {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="password" className="block mb-2 text-sm text-black font-inter-semibold">
-            New Password
-          </label>
-          <div className="relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              id="password"
-              name="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter new password"
-              className="w-full px-4 py-2 border text-black rounded-lg font-inter-regular placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-600 transition border-gray-300"
-              disabled={loading}
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute text-gray-400 -translate-y-1/2 cursor-pointer right-3 top-1/2 hover:text-gray-600"
-            >
-              {showPassword ? <IoMdEye className="w-6 h-6" /> : <IoMdEyeOff className="w-6 h-6" />}
-            </button>
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {[
+          ["password", "New password", password, setPassword, showPassword, setShowPassword],
+          [
+            "confirmPassword",
+            "Confirm password",
+            confirmPassword,
+            setConfirmPassword,
+            showConfirmPassword,
+            setShowConfirmPassword
+          ]
+        ].map(([id, label, value, setValue, visible, setVisible]) => (
+          <div key={id}>
+            <label htmlFor={id} className="mb-2 block text-sm text-slate-900 font-inter-semibold">
+              {label}
+            </label>
+            <div className="relative">
+              <input
+                type={visible ? "text" : "password"}
+                id={id}
+                name={id}
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+                placeholder={id === "password" ? "Enter new password" : "Confirm new password"}
+                className={`${inputClass} pr-12`}
+                disabled={loading}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setVisible(!visible)}
+                className="absolute right-1.5 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-xl text-slate-400 hover:bg-slate-200/70 hover:text-slate-700"
+                aria-label={visible ? "Hide password" : "Show password"}
+              >
+                {visible ? <IoMdEye className="h-5 w-5" /> : <IoMdEyeOff className="h-5 w-5" />}
+              </button>
+            </div>
           </div>
-        </div>
-
-        <div>
-          <label htmlFor="confirmPassword" className="block mb-2 text-sm text-black font-inter-semibold">
-            Confirm Password
-          </label>
-          <div className="relative">
-            <input
-              type={showConfirmPassword ? "text" : "password"}
-              id="confirmPassword"
-              name="confirmPassword"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Confirm new password"
-              className="w-full px-4 py-2 border text-black rounded-lg font-inter-regular placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-600 transition border-gray-300"
-              disabled={loading}
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute text-gray-400 -translate-y-1/2 cursor-pointer right-3 top-1/2 hover:text-gray-600"
-            >
-              {showConfirmPassword ? <IoMdEye className="w-6 h-6" /> : <IoMdEyeOff className="w-6 h-6" />}
-            </button>
-          </div>
-        </div>
+        ))}
 
         <button
           type="submit"
           disabled={loading || tokenMissing}
-          className="w-full py-2 text-white transition bg-gray-700 rounded-lg cursor-pointer font-inter-semibold hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="min-h-12 w-full rounded-2xl bg-slate-950 px-5 text-white shadow-[0_18px_45px_rgba(15,23,42,0.2)] cursor-pointer font-inter-semibold hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading ? "Updating..." : "Update password"}
         </button>
       </form>
 
-      <p className="text-sm text-center text-gray-600 font-inter-regular">
-        <Link href="/auth/login" className="text-gray-700 font-inter-semibold hover:underline">
-          Back to Login
+      <p className="text-center text-sm text-slate-600">
+        <Link href="/auth/login" className="text-slate-950 font-inter-semibold hover:underline">
+          Back to login
         </Link>
       </p>
     </div>

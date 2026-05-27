@@ -6,13 +6,14 @@ import {useSearchParams} from "next/navigation";
 import {signIn} from "next-auth/react";
 import {IoMdEye, IoMdEyeOff} from "react-icons/io";
 
+const inputClass =
+  "min-h-12 w-full rounded-2xl bg-slate-50 px-4 text-slate-950 shadow-[inset_0_0_0_1px_rgba(15,23,42,0.1)] placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/15";
+const errorInputClass = "shadow-[inset_0_0_0_1px_rgba(239,68,68,0.55)] focus:ring-red-500/15";
+
 export default function LoginForm() {
   const searchParams = useSearchParams();
   const hasShownVerifyAlert = useRef(false);
-  const [formData, setFormData] = useState({
-    email: "",
-    password: ""
-  });
+  const [formData, setFormData] = useState({email: "", password: ""});
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -39,17 +40,8 @@ export default function LoginForm() {
 
   const handleChange = (e) => {
     const {name, value} = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value
-    }));
-    // Clear error for this field
-    if (errors[name]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: ""
-      }));
-    }
+    setFormData((prev) => ({...prev, [name]: value}));
+    if (errors[name]) setErrors((prev) => ({...prev, [name]: ""}));
   };
 
   const handleSubmit = async (e) => {
@@ -72,37 +64,35 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h1 className="mb-2 text-3xl text-black font-inter-bold">Welcome Back!</h1>
-        <p className="text-sm text-gray-600 font-inter-regular">Fill your account information</p>
+    <div className="mx-auto w-full max-w-md space-y-7">
+      <div>
+        <p className="text-sm font-inter-semibold tracking-[0.18em] text-emerald-700 uppercase">Welcome back</p>
+        <h1 className="mt-3 text-4xl tracking-tight text-slate-950 font-inter-bold">Login to NETRA</h1>
+        <p className="mt-3 text-sm leading-6 text-slate-600">Use your verified account to continue.</p>
       </div>
 
       {verified && (
-        <div className="p-4 border border-green-200 rounded-lg bg-green-50">
-          <p className="text-sm text-green-800 font-inter-medium">
-            ✓ Email verified! You can now log in with your account.
-          </p>
+        <div className="rounded-2xl bg-emerald-50 p-4 text-sm text-emerald-800 shadow-[inset_0_0_0_1px_rgba(16,185,129,0.2)] font-inter-medium">
+          Email verified. You can now log in with your account.
         </div>
       )}
 
       {errorMessage && (
-        <div className="p-4 border border-red-200 rounded-lg bg-red-50">
-          <p className="text-sm text-red-800 font-inter-medium">{errorMessage}</p>
+        <div className="rounded-2xl bg-red-50 p-4 text-sm text-red-800 shadow-[inset_0_0_0_1px_rgba(239,68,68,0.18)] font-inter-medium">
+          {errorMessage}
         </div>
       )}
 
       {errors.general && (
-        <div className="p-4 border border-red-200 rounded-lg bg-red-50">
-          <p className="text-sm text-red-800 font-inter-medium">{errors.general}</p>
+        <div className="rounded-2xl bg-red-50 p-4 text-sm text-red-800 shadow-[inset_0_0_0_1px_rgba(239,68,68,0.18)] font-inter-medium">
+          {errors.general}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Email or Username Field */}
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label htmlFor="email" className="block mb-2 text-sm text-black font-inter-semibold">
-            Email or Username
+          <label htmlFor="email" className="mb-2 block text-sm text-slate-900 font-inter-semibold">
+            Email or username
           </label>
           <input
             type="text"
@@ -112,17 +102,14 @@ export default function LoginForm() {
             value={formData.email}
             onChange={handleChange}
             placeholder="Enter your email or username"
-            className={`w-full px-4 py-2 border rounded-lg text-black font-inter-regular placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-600 transition ${
-              errors.email ? "border-red-500" : "border-gray-300"
-            }`}
+            className={`${inputClass} ${errors.email ? errorInputClass : ""}`}
             disabled={loading}
           />
-          {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
+          {errors.email && <p className="mt-2 text-xs text-red-500">{errors.email}</p>}
         </div>
 
-        {/* Password Field */}
         <div>
-          <label htmlFor="password" className="block mb-2 text-sm text-black font-inter-semibold">
+          <label htmlFor="password" className="mb-2 block text-sm text-slate-900 font-inter-semibold">
             Password
           </label>
           <div className="relative">
@@ -130,50 +117,44 @@ export default function LoginForm() {
               type={showPassword ? "text" : "password"}
               id="password"
               name="password"
-              autoComplete="password"
+              autoComplete="current-password"
               value={formData.password}
               onChange={handleChange}
               placeholder="Enter your password"
-              className={`w-full px-4 py-2 border text-black rounded-lg font-inter-regular placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-600 transition ${
-                errors.password ? "border-red-500" : "border-gray-300"
-              }`}
+              className={`${inputClass} pr-12 ${errors.password ? errorInputClass : ""}`}
               disabled={loading}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute text-gray-400 -translate-y-1/2 cursor-pointer right-3 top-1/2 hover:text-gray-600"
+              className="absolute right-1.5 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-xl text-slate-400 hover:bg-slate-200/70 hover:text-slate-700"
+              aria-label={showPassword ? "Hide password" : "Show password"}
             >
-              {showPassword ? <IoMdEye className="w-6 h-6" /> : <IoMdEyeOff className="w-6 h-6" />}
+              {showPassword ? <IoMdEye className="h-5 w-5" /> : <IoMdEyeOff className="h-5 w-5" />}
             </button>
           </div>
-          {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password}</p>}
+          {errors.password && <p className="mt-2 text-xs text-red-500">{errors.password}</p>}
         </div>
 
         <div className="flex justify-end">
-          <Link
-            href="/auth/forgot-password"
-            className="text-sm text-gray-700 font-inter-semibold hover:underline"
-          >
+          <Link href="/auth/forgot-password" className="text-sm text-slate-600 hover:text-slate-950 font-inter-semibold">
             Forgot password?
           </Link>
         </div>
 
-        {/* Submit Button */}
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-2 text-white transition bg-gray-700 rounded-lg cursor-pointer font-inter-semibold hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="min-h-12 w-full rounded-2xl bg-slate-950 px-5 text-white shadow-[0_18px_45px_rgba(15,23,42,0.2)] cursor-pointer font-inter-semibold hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading ? "Logging in..." : "Login"}
         </button>
       </form>
 
-      {/* Sign Up Link */}
-      <p className="text-sm text-center text-gray-600 font-inter-regular">
-        Didn't have an Account?{" "}
-        <Link href="/auth/sign-up" className="text-gray-700 font-inter-semibold hover:underline">
-          Sign Up
+      <p className="text-center text-sm text-slate-600">
+        No account yet?{" "}
+        <Link href="/auth/sign-up" className="text-slate-950 font-inter-semibold hover:underline">
+          Sign up
         </Link>
       </p>
     </div>
